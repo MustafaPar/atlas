@@ -75,11 +75,11 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse cancel(UUID id) {
+    public void cancel(UUID id) {
         Order order = findOrThrow(id);
         validateTransition(order.getStatus(), OrderStatus.CANCELLED);
         order.setStatus(OrderStatus.CANCELLED);
-        return toResponse(orderRepository.save(order));
+        orderRepository.save(order);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -133,7 +133,8 @@ public class OrderService {
                 dz != null ? dz.getId()   : null,
                 dz != null ? dz.getSlug() : null,
                 dz != null ? dz.getName() : null,
-                order.getCreatedAt());
+                order.getCreatedAt(),
+                order.getUpdatedAt());
     }
 
     private OrderResponse toResponse(Order order) {

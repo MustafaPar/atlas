@@ -125,7 +125,8 @@ public class CourierService {
                 courier.getVehicleType(),
                 courier.getStatus(),
                 courier.getZone() != null ? courier.getZone().getId() : null,
-                courier.isActive());
+                courier.isActive(),
+                courier.getUpdatedAt());
     }
 
     private CourierResponse toResponse(Courier courier) {

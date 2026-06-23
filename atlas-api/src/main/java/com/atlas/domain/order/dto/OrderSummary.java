@@ -18,5 +18,6 @@ public record OrderSummary(
         UUID deliveryZoneId,
         String deliveryZoneSlug,
         String deliveryZoneName,
-        Instant createdAt
+        Instant createdAt,
+        Instant updatedAt
 ) {}

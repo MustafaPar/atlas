@@ -60,7 +60,8 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> cancel(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.ok(orderService.cancel(id)));
+    public ResponseEntity<ApiResponse<Void>> cancel(@PathVariable UUID id) {
+        orderService.cancel(id);
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 }

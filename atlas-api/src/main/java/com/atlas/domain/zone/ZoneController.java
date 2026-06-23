@@ -6,6 +6,7 @@ import com.atlas.domain.zone.dto.UpdateZoneRequest;
 import com.atlas.domain.zone.dto.ZoneResponse;
 import com.atlas.domain.zone.dto.ZoneResolveRequest;
 import com.atlas.domain.zone.dto.ZoneResolveResponse;
+import com.atlas.domain.zone.dto.ZoneSummary;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class ZoneController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ZoneResponse>>> listActive() {
+    public ResponseEntity<ApiResponse<List<ZoneSummary>>> listActive() {
         return ResponseEntity.ok(ApiResponse.ok(zoneService.listActive()));
     }
 

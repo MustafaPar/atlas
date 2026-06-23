@@ -7,6 +7,7 @@ import com.atlas.domain.zone.dto.CreateZoneRequest;
 import com.atlas.domain.zone.dto.UpdateZoneRequest;
 import com.atlas.domain.zone.dto.ZoneResponse;
 import com.atlas.domain.zone.dto.ZoneResolveResponse;
+import com.atlas.domain.zone.dto.ZoneSummary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,9 +36,9 @@ public class ZoneService {
     }
 
     @Transactional(readOnly = true)
-    public List<ZoneResponse> listActive() {
+    public List<ZoneSummary> listActive() {
         return zoneRepository.findAllByActiveTrue().stream()
-                .map(this::toResponse)
+                .map(this::toSummary)
                 .toList();
     }
 
@@ -69,6 +70,17 @@ public class ZoneService {
                 .filter(z -> PolygonUtils.contains(z.getPolygon(), latitude, longitude))
                 .map(z -> new ZoneResolveResponse(z.getId(), z.getSlug(), z.getName()))
                 .toList();
+    }
+
+    private ZoneSummary toSummary(DeliveryZone zone) {
+        return new ZoneSummary(
+                zone.getId(),
+                zone.getSlug(),
+                zone.getName(),
+                zone.getMaxCapacity(),
+                zone.isActive(),
+                zone.getCreatedAt(),
+                zone.getUpdatedAt());
     }
 
     private DeliveryZone findOrThrow(UUID id) {
