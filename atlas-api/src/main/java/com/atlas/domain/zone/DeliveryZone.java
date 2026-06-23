@@ -42,6 +42,9 @@ public class DeliveryZone {
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
+    @Column(name = "route_factor", nullable = false)
+    private double routeFactor = 1.2;
+
     @Column(name = "created_at", updatable = false, nullable = false)
     private Instant createdAt;
 

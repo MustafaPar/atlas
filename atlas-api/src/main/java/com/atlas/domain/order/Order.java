@@ -62,6 +62,18 @@ public class Order {
     @Column(name = "delivered_at")
     private Instant deliveredAt;
 
+    @Column(name = "eta_minutes")
+    private Integer etaMinutes;
+
+    @Column(name = "eta_computed_at")
+    private Instant etaComputedAt;
+
+    @Column(name = "eta_confidence")
+    private Double etaConfidence;
+
+    @Column(name = "eta_distance_km")
+    private Double etaDistanceKm;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pickup_zone_id")
     private DeliveryZone pickupZone;

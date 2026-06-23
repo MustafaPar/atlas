@@ -8,6 +8,9 @@ import com.atlas.domain.order.dto.CreateOrderRequest;
 import com.atlas.domain.order.dto.OrderResponse;
 import com.atlas.domain.order.dto.OrderSummary;
 import com.atlas.domain.order.dto.UpdateOrderStatusRequest;
+import com.atlas.domain.eta.EtaCalculator;
+import com.atlas.domain.eta.EtaInput;
+import com.atlas.domain.eta.EtaResult;
 import com.atlas.domain.sla.SlaEvaluator;
 import com.atlas.domain.sla.SlaStatus;
 import com.atlas.domain.sla.SlaTier;
@@ -56,6 +59,20 @@ public class OrderService {
         SlaTier slaTier = toSlaTier(order.getPriority());
         order.setSlaTier(slaTier);
         order.setPromisedDeliveryAt(Instant.now().plus(slaTier.getWindowMinutes(), ChronoUnit.MINUTES));
+
+        DeliveryZone etaZone = order.getDeliveryZone();
+        EtaInput etaInput = new EtaInput(
+                order.getPickupLatitude(), order.getPickupLongitude(),
+                order.getDeliveryLatitude(), order.getDeliveryLongitude(),
+                null, null, null,
+                etaZone != null ? etaZone.getRouteFactor() : EtaCalculator.DEFAULT_ROUTE_FACTOR,
+                etaZone != null,
+                order.getPromisedDeliveryAt());
+        EtaResult eta = EtaCalculator.compute(etaInput);
+        order.setEtaMinutes(eta.etaMinutes());
+        order.setEtaComputedAt(eta.computedAt());
+        order.setEtaConfidence(eta.confidenceScore());
+        order.setEtaDistanceKm(eta.distanceKm());
 
         return toResponse(orderRepository.save(order));
     }
@@ -138,6 +155,8 @@ public class OrderService {
                 order.getPriority(),
                 order.getSlaTier(),
                 slaStatus,
+                order.getEtaMinutes(),
+                order.getEtaConfidence(),
                 order.getPickupAddress(),
                 order.getDeliveryAddress(),
                 pz != null ? pz.getId()   : null,
@@ -155,6 +174,19 @@ public class OrderService {
         DeliveryZone dz = order.getDeliveryZone();
         SlaStatus slaStatus = SlaEvaluator.evaluate(
                 order.getSlaTier(), order.getPromisedDeliveryAt(), order.getDeliveredAt(), Instant.now());
+
+        Instant estimatedArrivalAt = null;
+        Integer minutesToDeadline = null;
+        Boolean slaFeasible = null;
+        if (order.getEtaMinutes() != null && order.getEtaComputedAt() != null) {
+            estimatedArrivalAt = order.getEtaComputedAt().plus(order.getEtaMinutes(), ChronoUnit.MINUTES);
+            if (order.getPromisedDeliveryAt() != null) {
+                long secs = ChronoUnit.SECONDS.between(estimatedArrivalAt, order.getPromisedDeliveryAt());
+                minutesToDeadline = (int) (secs / 60);
+                slaFeasible = estimatedArrivalAt.isBefore(order.getPromisedDeliveryAt());
+            }
+        }
+
         return new OrderResponse(
                 order.getId(),
                 order.getPickupLatitude(),
@@ -170,6 +202,12 @@ public class OrderService {
                 order.getPromisedDeliveryAt(),
                 order.getDeliveredAt(),
                 slaStatus,
+                order.getEtaMinutes(),
+                order.getEtaComputedAt(),
+                order.getEtaConfidence(),
+                estimatedArrivalAt,
+                minutesToDeadline,
+                slaFeasible,
                 pz != null ? pz.getId()   : null,
                 pz != null ? pz.getSlug() : null,
                 pz != null ? pz.getName() : null,
