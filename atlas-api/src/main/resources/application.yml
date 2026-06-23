@@ -24,6 +24,28 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: false
 
+# ── JWT ────────────────────────────────────────────────────────────────────
+# JWT_SECRET must be set as an environment variable before starting the app.
+# The secret must be a Base64-encoded string of at least 32 random bytes
+# (256 bits) to satisfy HS256 requirements.
+#
+# Generate and set it for the current PowerShell session:
+#
+#   $bytes = New-Object byte[] 32
+#   [Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+#   $env:JWT_SECRET = [Convert]::ToBase64String($bytes)
+#
+# To persist it across sessions (User scope):
+#
+#   [System.Environment]::SetEnvironmentVariable("JWT_SECRET", $env:JWT_SECRET, "User")
+#
+# JWT_EXPIRY_MS is optional — defaults to 86400000 (24 hours).
+# ───────────────────────────────────────────────────────────────────────────
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiry-ms: ${JWT_EXPIRY_MS:86400000}
+
 server:
   port: 8080
 
