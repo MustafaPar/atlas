@@ -2,6 +2,8 @@ package com.atlas.domain.order.dto;
 
 import com.atlas.domain.order.OrderPriority;
 import com.atlas.domain.order.OrderStatus;
+import com.atlas.domain.sla.SlaTier;
+import com.atlas.domain.sla.SlaStatus;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -17,6 +19,10 @@ public record OrderResponse(
         OrderPriority priority,
         OrderStatus status,
         Integer estimatedDurationMin,
+        SlaTier slaTier,
+        Instant promisedDeliveryAt,
+        Instant deliveredAt,
+        SlaStatus slaStatus,
         UUID pickupZoneId,
         String pickupZoneSlug,
         String pickupZoneName,

@@ -8,12 +8,17 @@ import com.atlas.domain.order.dto.CreateOrderRequest;
 import com.atlas.domain.order.dto.OrderResponse;
 import com.atlas.domain.order.dto.OrderSummary;
 import com.atlas.domain.order.dto.UpdateOrderStatusRequest;
+import com.atlas.domain.sla.SlaEvaluator;
+import com.atlas.domain.sla.SlaStatus;
+import com.atlas.domain.sla.SlaTier;
 import com.atlas.domain.zone.DeliveryZone;
 import com.atlas.domain.zone.ZoneRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,6 +52,10 @@ public class OrderService {
         order.setEstimatedDurationMin(estimateDurationMin(
                 request.pickupLatitude(), request.pickupLongitude(),
                 request.deliveryLatitude(), request.deliveryLongitude()));
+
+        SlaTier slaTier = toSlaTier(order.getPriority());
+        order.setSlaTier(slaTier);
+        order.setPromisedDeliveryAt(Instant.now().plus(slaTier.getWindowMinutes(), ChronoUnit.MINUTES));
 
         return toResponse(orderRepository.save(order));
     }
@@ -121,10 +130,14 @@ public class OrderService {
     private OrderSummary toSummary(Order order) {
         DeliveryZone pz = order.getPickupZone();
         DeliveryZone dz = order.getDeliveryZone();
+        SlaStatus slaStatus = SlaEvaluator.evaluate(
+                order.getSlaTier(), order.getPromisedDeliveryAt(), order.getDeliveredAt(), Instant.now());
         return new OrderSummary(
                 order.getId(),
                 order.getStatus(),
                 order.getPriority(),
+                order.getSlaTier(),
+                slaStatus,
                 order.getPickupAddress(),
                 order.getDeliveryAddress(),
                 pz != null ? pz.getId()   : null,
@@ -140,6 +153,8 @@ public class OrderService {
     private OrderResponse toResponse(Order order) {
         DeliveryZone pz = order.getPickupZone();
         DeliveryZone dz = order.getDeliveryZone();
+        SlaStatus slaStatus = SlaEvaluator.evaluate(
+                order.getSlaTier(), order.getPromisedDeliveryAt(), order.getDeliveredAt(), Instant.now());
         return new OrderResponse(
                 order.getId(),
                 order.getPickupLatitude(),
@@ -151,6 +166,10 @@ public class OrderService {
                 order.getPriority(),
                 order.getStatus(),
                 order.getEstimatedDurationMin(),
+                order.getSlaTier(),
+                order.getPromisedDeliveryAt(),
+                order.getDeliveredAt(),
+                slaStatus,
                 pz != null ? pz.getId()   : null,
                 pz != null ? pz.getSlug() : null,
                 pz != null ? pz.getName() : null,
@@ -159,5 +178,13 @@ public class OrderService {
                 dz != null ? dz.getName() : null,
                 order.getCreatedAt(),
                 order.getUpdatedAt());
+    }
+
+    private SlaTier toSlaTier(OrderPriority priority) {
+        return switch (priority) {
+            case URGENT -> SlaTier.PRIORITY;
+            case HIGH   -> SlaTier.EXPRESS;
+            default     -> SlaTier.STANDARD;
+        };
     }
 }

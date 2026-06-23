@@ -1,5 +1,6 @@
 package com.atlas.domain.order;
 
+import com.atlas.domain.sla.SlaTier;
 import com.atlas.domain.zone.DeliveryZone;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -50,6 +51,16 @@ public class Order {
 
     @Column(name = "estimated_duration_min")
     private Integer estimatedDurationMin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sla_tier", length = 20)
+    private SlaTier slaTier;
+
+    @Column(name = "promised_delivery_at")
+    private Instant promisedDeliveryAt;
+
+    @Column(name = "delivered_at")
+    private Instant deliveredAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pickup_zone_id")
