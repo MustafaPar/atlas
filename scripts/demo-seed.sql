@@ -97,56 +97,69 @@ INSERT INTO orders (
     delivery_latitude, delivery_longitude, delivery_address,
     priority, status, estimated_duration_min,
     sla_tier, promised_delivery_at,
-    pickup_zone_id, delivery_zone_id
+    pickup_zone_id, delivery_zone_id,
+    eta_minutes
 ) VALUES
 
     -- 1: URGENT, Kadikoy -> Besiktas, BREACHED (deadline 3 min ago)
+    --    ETA: 7.1 km * route_factor 1.30 / 15 km/h * 60 = 37 min
     (40.988, 29.040, 'Bagdat Caddesi 42, Kadikoy',
      41.048, 29.010, 'Ihlamur Yolu 8, Besiktas',
      'URGENT', 'WAITING', 29,
      'PRIORITY', now() - interval '3 minutes',
      '00000000-0000-0000-0000-000000000001',
-     '00000000-0000-0000-0000-000000000002'),
+     '00000000-0000-0000-0000-000000000002',
+     37),
 
     -- 2: URGENT, Besiktas -> Kadikoy, AT_RISK (8 min to deadline)
+    --    ETA: 8.8 km * route_factor 1.25 / 15 km/h * 60 = 44 min
     (41.055, 29.000, 'Ciragan Caddesi 15, Besiktas',
      40.980, 29.035, 'Moda Caddesi 77, Kadikoy',
      'URGENT', 'WAITING', 29,
      'PRIORITY', now() + interval '8 minutes',
      '00000000-0000-0000-0000-000000000002',
-     '00000000-0000-0000-0000-000000000001'),
+     '00000000-0000-0000-0000-000000000001',
+     44),
 
     -- 3: HIGH, Kadikoy -> Kadikoy, ON_TRACK
+    --    ETA: 3.1 km * route_factor 1.25 / 15 km/h * 60 = 15 min
     (40.975, 29.025, 'Sogutlucesme Caddesi 3, Kadikoy',
      40.995, 29.050, 'Fenerbahce Parki Girisi, Kadikoy',
      'HIGH', 'WAITING', 13,
      'EXPRESS', now() + interval '25 minutes',
      '00000000-0000-0000-0000-000000000001',
-     '00000000-0000-0000-0000-000000000001'),
+     '00000000-0000-0000-0000-000000000001',
+     15),
 
     -- 4: HIGH, Besiktas -> Besiktas, ON_TRACK
+    --    ETA: 3.0 km * route_factor 1.30 / 15 km/h * 60 = 16 min
     (41.040, 28.990, 'Barbaros Bulvari 120, Besiktas',
      41.060, 29.015, 'Yildiz Caddesi 5, Besiktas',
      'HIGH', 'WAITING', 13,
      'EXPRESS', now() + interval '25 minutes',
      '00000000-0000-0000-0000-000000000002',
-     '00000000-0000-0000-0000-000000000002'),
+     '00000000-0000-0000-0000-000000000002',
+     16),
 
     -- 5: NORMAL, Kadikoy -> Besiktas, ON_TRACK
-    (40.992, 29.045, 'Acıbadem Caddesi 22, Kadikoy',
+    --    ETA: 9.6 km * route_factor 1.30 / 15 km/h * 60 = 50 min
+    (40.992, 29.045, 'Acibadem Caddesi 22, Kadikoy',
      41.065, 28.985, 'Levent Caddesi 9, Besiktas',
      'NORMAL', 'WAITING', 30,
      'STANDARD', now() + interval '55 minutes',
      '00000000-0000-0000-0000-000000000001',
-     '00000000-0000-0000-0000-000000000002'),
+     '00000000-0000-0000-0000-000000000002',
+     50),
 
     -- 6: NORMAL, Besiktas -> Kadikoy, ON_TRACK
+    --    ETA: 8.7 km * route_factor 1.25 / 15 km/h * 60 = 44 min
     (41.042, 28.995, 'Nisantasi Abdi Ipekci Caddesi 18, Besiktas',
      40.978, 29.055, 'Kalamis Marina, Kadikoy',
      'NORMAL', 'WAITING', 30,
      'STANDARD', now() + interval '55 minutes',
      '00000000-0000-0000-0000-000000000002',
-     '00000000-0000-0000-0000-000000000001');
+     '00000000-0000-0000-0000-000000000001',
+     44);
 
 
 COMMIT;
