@@ -315,14 +315,16 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
 
   const handleStartSim = useCallback(() => {
     if (!selectedOrder || !assignmentForOrder || !courierForOrderAssignment) return
-    if (courierForOrderAssignment.latitude == null || courierForOrderAssignment.longitude == null) return
+    // Fall back to pickup coords when courier has no GPS position (common in demo environments).
+    const courierLat = courierForOrderAssignment.latitude ?? selectedOrder.pickupLatitude
+    const courierLng = courierForOrderAssignment.longitude ?? selectedOrder.pickupLongitude
     startSimulation({
       orderId:      selectedOrder.id,
       courierId:    courierForOrderAssignment.id,
       assignmentId: assignmentForOrder.id,
       vehicleType:  courierForOrderAssignment.vehicleType,
-      courierLat:   courierForOrderAssignment.latitude,
-      courierLng:   courierForOrderAssignment.longitude,
+      courierLat,
+      courierLng,
       pickupLat:    selectedOrder.pickupLatitude,
       pickupLng:    selectedOrder.pickupLongitude,
       deliveryLat:  selectedOrder.deliveryLatitude,
@@ -337,15 +339,18 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
       const asgn = assignments.find((a) => a.orderId === order.id && !a.deliveredAt && !a.cancelledAt)
       if (!asgn) continue
       const courier = couriers.find((c) => c.id === asgn.courierId)
-      if (!courier || courier.latitude == null || courier.longitude == null) continue
+      if (!courier) continue
       if (simMap[courier.id]) continue  // already simulating
+      // Fall back to pickup coords when courier has no GPS position.
+      const courierLat = courier.latitude ?? order.pickupLatitude
+      const courierLng = courier.longitude ?? order.pickupLongitude
       startSimulation({
         orderId:      order.id,
         courierId:    courier.id,
         assignmentId: asgn.id,
         vehicleType:  courier.vehicleType,
-        courierLat:   courier.latitude,
-        courierLng:   courier.longitude,
+        courierLat,
+        courierLng,
         pickupLat:    order.pickupLatitude,
         pickupLng:    order.pickupLongitude,
         deliveryLat:  order.deliveryLatitude,
@@ -394,14 +399,20 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
     return entry ? { ...c, latitude: entry.lat, longitude: entry.lng } : c
   })
 
-  // Whether there are any ASSIGNED orders that can still be started.
-  const canSimulateMore = orders.some((o) => {
-    if (o.status !== 'ASSIGNED') return false
+  // Compute simulation readiness and a user-facing reason when disabled.
+  const assignedOrders = orders.filter((o) => o.status === 'ASSIGNED')
+  const simReadyOrders = assignedOrders.filter((o) => {
     const asgn = assignments.find((a) => a.orderId === o.id && !a.deliveredAt && !a.cancelledAt)
     if (!asgn) return false
     const courier = couriers.find((c) => c.id === asgn.courierId)
-    return courier && courier.latitude != null && courier.longitude != null && !simMap[courier.id]
+    return courier && !simMap[courier.id]
   })
+  const canSimulateMore = simReadyOrders.length > 0
+  const simDisabledReason: string | null = canSimulateMore ? null
+    : activeCount > 0 && assignedOrders.length === 0 ? null  // all running, no label needed
+    : assignedOrders.length === 0 ? 'No assigned orders on map'
+    : simReadyOrders.length === 0 && activeCount > 0 ? null  // all already running
+    : 'No couriers assigned to orders'
 
   // Sim entry for the currently selected order (via its assigned courier).
   const simForSelectedOrder = courierForOrderAssignment
@@ -450,27 +461,33 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
                 onDeselect={handleDeselect}
               />
 
-              {/* Simulation control overlay — top-left of map canvas */}
-              {(canSimulateMore || activeCount > 0) && (
-                <div className="absolute top-3 left-3 z-[1001] flex flex-col gap-1.5">
-                  {canSimulateMore && (
-                    <button
-                      onClick={handleSimulateAll}
-                      className="px-3 py-1.5 text-xs font-medium bg-white/95 border border-gray-200 rounded-lg shadow-sm text-gray-700 hover:bg-white transition-colors backdrop-blur-sm"
-                    >
-                      ▶ Simulate All Assigned
-                    </button>
-                  )}
-                  {activeCount > 0 && (
-                    <button
-                      onClick={() => stopSimulation()}
-                      className="px-3 py-1.5 text-xs font-medium bg-white/95 border border-gray-200 rounded-lg shadow-sm text-gray-500 hover:text-red-600 hover:bg-white transition-colors backdrop-blur-sm"
-                    >
-                      ✕ Stop All ({activeCount})
-                    </button>
-                  )}
-                </div>
-              )}
+              {/* Simulation toolbar — top-right, always visible after map loads */}
+              <div className="absolute top-3 right-3 z-[1001] flex flex-col gap-1 items-end">
+                <button
+                  onClick={handleSimulateAll}
+                  disabled={!canSimulateMore}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm border transition-colors backdrop-blur-sm ${
+                    canSimulateMore
+                      ? 'bg-indigo-600 border-indigo-700 text-white hover:bg-indigo-700 cursor-pointer'
+                      : 'bg-white/95 border-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  ▶ Simulate All Assigned
+                </button>
+                {simDisabledReason && (
+                  <p className="text-[10px] text-white/80 bg-black/30 rounded px-2 py-0.5 backdrop-blur-sm">
+                    {simDisabledReason}
+                  </p>
+                )}
+                {activeCount > 0 && (
+                  <button
+                    onClick={() => stopSimulation()}
+                    className="mt-0.5 px-3 py-1.5 text-xs font-medium bg-white/95 border border-gray-200 rounded-lg shadow-sm text-gray-500 hover:text-red-600 hover:bg-white transition-colors backdrop-blur-sm"
+                  >
+                    ✕ Stop All ({activeCount})
+                  </button>
+                )}
+              </div>
             </>
           )}
         </div>
