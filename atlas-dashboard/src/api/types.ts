@@ -55,6 +55,16 @@ export interface GeoPoint {
 
 export type CourierStatus = 'AVAILABLE' | 'DELIVERING' | 'OFFLINE'
 
+export interface ZoneSummary {
+  id: string
+  slug: string
+  name: string
+  maxCapacity: number
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export interface ZoneResponse {
   id: string
   slug: string

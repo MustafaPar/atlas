@@ -1,5 +1,4 @@
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
 import type { MapData } from './useMapData'
 import ZoneLayer from './ZoneLayer'
 import CourierLayer from './CourierLayer'
@@ -54,6 +53,7 @@ export default function AtlasMap({ data, selection, onSelectOrder, onSelectCouri
       center={center}
       zoom={13}
       className="h-full w-full"
+      style={{ height: '100%', width: '100%' }}
       zoomControl={true}
     >
       <TileLayer

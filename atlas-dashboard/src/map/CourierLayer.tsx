@@ -21,7 +21,7 @@ interface Props {
 
 export default function CourierLayer({ couriers, selectedCourierId, onSelect }: Props) {
   const visible = couriers.filter(
-    (c) => c.isActive && c.latitude !== null && c.longitude !== null,
+    (c) => c.isActive && c.latitude != null && c.longitude != null,
   )
 
   return (

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import client from '../api/client'
 import type {
   ApiResponse,
+  ZoneSummary,
   ZoneResponse,
   CourierResponse,
   OrderResponse,
@@ -36,12 +37,24 @@ export function useMapData(): MapDataState {
     setLoading(true)
     setError(null)
     try {
-      const [zonesRes, couriersRes, orderListRes, assignmentsRes] = await Promise.all([
-        client.get<ApiResponse<ZoneResponse[]>>('/api/v1/zones'),
+      const [zoneListRes, couriersRes, orderListRes, assignmentsRes] = await Promise.all([
+        client.get<ApiResponse<ZoneSummary[]>>('/api/v1/zones'),
         client.get<ApiResponse<CourierResponse[]>>('/api/v1/couriers'),
         client.get<ApiResponse<OrderSummary[]>>('/api/v1/orders'),
         client.get<ApiResponse<AssignmentSummary[]>>('/api/v1/assignments?activeOnly=true'),
       ])
+
+      // Dashboard demo shortcut: GET /api/v1/zones returns ZoneSummary (no polygon).
+      // Fetch each zone's full detail in parallel to obtain the polygon coordinates.
+      // Replace with a dedicated map-summary endpoint (e.g. GET /api/v1/zones/map)
+      // if the dataset grows beyond a handful of zones.
+      const fullZones = await Promise.all(
+        zoneListRes.data.data.map((z) =>
+          client
+            .get<ApiResponse<ZoneResponse>>(`/api/v1/zones/${z.id}`)
+            .then((r) => r.data.data),
+        ),
+      )
 
       const orderSummaries = orderListRes.data.data
 
@@ -58,7 +71,7 @@ export function useMapData(): MapDataState {
       )
 
       setData({
-        zones: zonesRes.data.data,
+        zones: fullZones,
         couriers: couriersRes.data.data,
         orders: fullOrders,
         assignments: assignmentsRes.data.data,

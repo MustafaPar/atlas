@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { CircleMarker, Polyline, Tooltip } from 'react-leaflet'
 import type { OrderResponse } from '../api/types'
 
@@ -16,7 +17,10 @@ export default function OrderLayer({
 }: Props) {
   return (
     <>
-      {orders.map((order) => {
+      {orders.filter(o =>
+        o.pickupLatitude != null && o.pickupLongitude != null &&
+        o.deliveryLatitude != null && o.deliveryLongitude != null
+      ).map((order) => {
         const pickup: [number, number] = [order.pickupLatitude, order.pickupLongitude]
         const delivery: [number, number] = [order.deliveryLatitude, order.deliveryLongitude]
         const selected = order.id === selectedOrderId
@@ -29,7 +33,7 @@ export default function OrderLayer({
         const opacity = dimmed ? 0.2 : 1
 
         return (
-          <g key={order.id}>
+          <Fragment key={order.id}>
             {(selected || highlighted) && (
               <Polyline
                 positions={[pickup, delivery]}
@@ -91,7 +95,7 @@ export default function OrderLayer({
                 )}
               </Tooltip>
             </CircleMarker>
-          </g>
+          </Fragment>
         )
       })}
     </>

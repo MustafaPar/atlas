@@ -170,7 +170,7 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
   const hasPanel = selectedOrder !== null || selectedCourier !== null
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <img src="/logo-mark.svg" alt="Atlas" className="h-8" />
@@ -200,7 +200,7 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 relative">
+        <div className="flex-1 relative" style={{ height: '100%' }}>
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
               <p className="text-sm text-gray-500">Loading map…</p>
