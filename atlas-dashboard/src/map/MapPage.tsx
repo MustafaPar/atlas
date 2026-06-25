@@ -311,13 +311,24 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
 
   const hasPanel = selectedOrder !== null || selectedCourier !== null
 
+  // ── Simulation helpers ──────────────────────────────────────────────────
+
+  // When a courier has no GPS coords, offset the fallback start so the to_pickup
+  // leg has a visible distance instead of sitting on the same point as pickup.
+  function offsetFromPickup(pickupLat: number, pickupLng: number) {
+    const angle = Math.random() * 2 * Math.PI
+    const dist  = 0.004 + Math.random() * 0.003  // ~440–770m
+    return { lat: pickupLat + Math.cos(angle) * dist, lng: pickupLng + Math.sin(angle) * dist }
+  }
+
   // ── Simulation handlers ─────────────────────────────────────────────────
 
   const handleStartSim = useCallback(() => {
     if (!selectedOrder || !assignmentForOrder || !courierForOrderAssignment) return
-    // Fall back to pickup coords when courier has no GPS position (common in demo environments).
-    const courierLat = courierForOrderAssignment.latitude ?? selectedOrder.pickupLatitude
-    const courierLng = courierForOrderAssignment.longitude ?? selectedOrder.pickupLongitude
+    const hasGps = courierForOrderAssignment.latitude != null && courierForOrderAssignment.longitude != null
+    const fallback = offsetFromPickup(selectedOrder.pickupLatitude, selectedOrder.pickupLongitude)
+    const courierLat = hasGps ? courierForOrderAssignment.latitude! : fallback.lat
+    const courierLng = hasGps ? courierForOrderAssignment.longitude! : fallback.lng
     startSimulation({
       orderId:      selectedOrder.id,
       courierId:    courierForOrderAssignment.id,
@@ -341,9 +352,10 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
       const courier = couriers.find((c) => c.id === asgn.courierId)
       if (!courier) continue
       if (simMap[courier.id]) continue  // already simulating
-      // Fall back to pickup coords when courier has no GPS position.
-      const courierLat = courier.latitude ?? order.pickupLatitude
-      const courierLng = courier.longitude ?? order.pickupLongitude
+      const hasGps = courier.latitude != null && courier.longitude != null
+      const fallback = offsetFromPickup(order.pickupLatitude, order.pickupLongitude)
+      const courierLat = hasGps ? courier.latitude! : fallback.lat
+      const courierLng = hasGps ? courier.longitude! : fallback.lng
       startSimulation({
         orderId:      order.id,
         courierId:    courier.id,
@@ -456,6 +468,7 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
                 data={{ zones, couriers: renderedCouriers, orders, assignments }}
                 selection={{ orderId: selectedOrderId, courierId: selectedCourierId }}
                 extraHighlightedOrderIds={simulatingOrderIds}
+                simulatingCourierIds={new Set(Object.keys(simMap))}
                 onSelectOrder={handleSelectOrder}
                 onSelectCourier={handleSelectCourier}
                 onDeselect={handleDeselect}

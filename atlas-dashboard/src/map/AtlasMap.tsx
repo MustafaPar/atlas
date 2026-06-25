@@ -13,6 +13,7 @@ interface Props {
   data: MapData
   selection: SelectionState
   extraHighlightedOrderIds?: Set<string>
+  simulatingCourierIds?: Set<string>
   onSelectOrder: (id: string) => void
   onSelectCourier: (id: string) => void
   onDeselect: () => void
@@ -37,7 +38,7 @@ function deriveHighlightedOrderIds(
   return new Set()
 }
 
-export default function AtlasMap({ data, selection, extraHighlightedOrderIds, onSelectOrder, onSelectCourier, onDeselect }: Props) {
+export default function AtlasMap({ data, selection, extraHighlightedOrderIds, simulatingCourierIds, onSelectOrder, onSelectCourier, onDeselect }: Props) {
   const derived = deriveHighlightedOrderIds(selection, data.assignments)
   const highlightedOrderIds = extraHighlightedOrderIds && extraHighlightedOrderIds.size > 0
     ? new Set([...derived, ...extraHighlightedOrderIds])
@@ -79,6 +80,7 @@ export default function AtlasMap({ data, selection, extraHighlightedOrderIds, on
       <CourierLayer
         couriers={data.couriers}
         selectedCourierId={selection.courierId}
+        simulatingCourierIds={simulatingCourierIds}
         onSelect={onSelectCourier}
       />
     </MapContainer>
