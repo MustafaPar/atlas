@@ -35,6 +35,8 @@ export default function OrdersPage({ onLogout, onViewMap }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
+  const [resetting, setResetting] = useState(false)
+
   const load = useCallback(async () => {
     setError(null)
     try {
@@ -51,6 +53,28 @@ export default function OrdersPage({ onLogout, onViewMap }: Props) {
       setLoading(false)
     }
   }, [])
+
+  const handleResetDemo = useCallback(async () => {
+    setResetting(true)
+    setError(null)
+    try {
+      await client.post('/api/v1/demo/reset')
+    } catch (e: unknown) {
+      const status = (e as { response?: { status?: number; data?: { message?: string } } })?.response?.status
+      const msg    = (e as { response?: { data?: { message?: string } } })?.response?.data?.message
+      setError(`Reset failed (HTTP ${status ?? 'no response'}${msg ? ': ' + msg : ''}). Restart the backend and try again.`)
+      setResetting(false)
+      return
+    }
+    // Reset succeeded — reload data independently so its errors are reported separately.
+    try {
+      await load()
+    } catch {
+      setError('Reset succeeded but data reload failed. Click Refresh.')
+    } finally {
+      setResetting(false)
+    }
+  }, [load])
 
   useEffect(() => {
     load()
@@ -126,12 +150,22 @@ export default function OrdersPage({ onLogout, onViewMap }: Props) {
         {/* Orders section */}
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-gray-900">Orders</h2>
-          <button
-            onClick={load}
-            className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            ↺ Refresh
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleResetDemo}
+              disabled={resetting}
+              className="text-xs text-gray-400 hover:text-gray-600 disabled:opacity-50 transition-colors"
+              title="Restore demo data to initial state"
+            >
+              {resetting ? 'Resetting…' : '⟳ Reset demo'}
+            </button>
+            <button
+              onClick={load}
+              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              ↺ Refresh
+            </button>
+          </div>
         </div>
 
         {loading && (

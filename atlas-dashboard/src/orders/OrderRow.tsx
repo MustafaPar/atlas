@@ -191,6 +191,12 @@ export default function OrderRow({ order, activeAssignment, onRefresh }: Props) 
                 {loading ? '…' : 'Deliver'}
               </button>
             )}
+            {order.status === 'DELIVERED' && (
+              <span className="text-xs text-gray-400">Completed</span>
+            )}
+            {order.status === 'CANCELLED' && (
+              <span className="text-xs text-gray-300">Cancelled</span>
+            )}
             {error && <p className="text-xs text-red-600 mt-0.5">{error}</p>}
           </div>
         </td>
