@@ -6,9 +6,10 @@ import OrderRow from './OrderRow'
 
 interface Props {
   onLogout: () => void
+  onViewMap: () => void
 }
 
-export default function OrdersPage({ onLogout }: Props) {
+export default function OrdersPage({ onLogout, onViewMap }: Props) {
   const [orders, setOrders] = useState<OrderSummary[]>([])
   const [assignments, setAssignments] = useState<AssignmentSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -52,15 +53,24 @@ export default function OrdersPage({ onLogout }: Props) {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-lg font-bold text-gray-900">Atlas</span>
+          <img src="/logo-mark.svg" alt="Atlas" className="h-8" />
           <span className="text-sm text-gray-400">Last-Mile Delivery</span>
         </div>
-        <button
-          onClick={handleLogout}
-          className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          Logout
-        </button>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-gray-800">Orders</span>
+          <button
+            onClick={onViewMap}
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Map
+          </button>
+          <button
+            onClick={handleLogout}
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-6">
