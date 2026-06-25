@@ -24,8 +24,17 @@ export default function LoginPage({ onLogin }: Props) {
       })
       setToken(res.data.data.accessToken)
       onLogin()
-    } catch {
-      setError('Invalid credentials.')
+    } catch (e: unknown) {
+      const err = e as { response?: { status?: number; data?: { message?: string } }; message?: string }
+      const status = err.response?.status
+      const msg    = err.response?.data?.message
+      if (status === 401) {
+        setError('Invalid credentials. Check email and password.')
+      } else if (status) {
+        setError(`Login failed (HTTP ${status}${msg ? ': ' + msg : ''}).`)
+      } else {
+        setError(`Cannot reach backend: ${err.message ?? 'network error'}. Is the server running?`)
+      }
     } finally {
       setLoading(false)
     }
@@ -70,6 +79,15 @@ export default function LoginPage({ onLogin }: Props) {
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+        <div className="mt-5 text-center">
+          <button
+            type="button"
+            onClick={() => { setEmail('demo@atlas.io'); setPassword('demo12345') }}
+            className="text-xs text-gray-500 hover:text-gray-400 transition-colors"
+          >
+            Use demo account
+          </button>
+        </div>
       </div>
     </div>
   )

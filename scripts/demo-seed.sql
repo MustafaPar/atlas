@@ -14,7 +14,7 @@
 --
 -- Login credentials after seeding:
 --   Email:    demo@atlas.io
---   Password: Atlas2024!
+--   Password: demo12345
 -- =============================================================================
 
 BEGIN;
@@ -42,13 +42,13 @@ DELETE FROM users WHERE email = 'demo@atlas.io';
 -- -----------------------------------------------------------------------------
 -- Operator account
 --
--- Password : Atlas2024!
+-- Password : demo12345
 -- Hash     : BCrypt cost 10, generated and verified with Spring Security
 --            BCryptPasswordEncoder. Never stored as plain text.
 -- -----------------------------------------------------------------------------
 INSERT INTO users (email, password, role) VALUES (
     'demo@atlas.io',
-    '$2a$10$eiED1Vs9JQqzD2uXhxjK8uCp8r/eJEyp0rPF6h5ibssmVsYWdzxnW',
+    '$2a$10$R/NQOGwCONEiKnpZLFshc.TSdWYEmjM1yXj3HK84Buzp/3LtaRbWS',
     'OPERATOR'
 );
 

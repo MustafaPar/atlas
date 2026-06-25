@@ -14,7 +14,9 @@ client.interceptors.request.use((config) => {
 client.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only force-logout on 401 when there is an active session.
+    // Never redirect during the login request itself (no token → login page).
+    if (error.response?.status === 401 && localStorage.getItem('atlas_token')) {
       clearToken()
       window.location.href = '/'
     }
