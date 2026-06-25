@@ -1,5 +1,9 @@
 # Atlas
 
+<div align="center">
+  <img src="atlas-dashboard/public/logo-full.svg" alt="Atlas" width="480">
+</div>
+
 An intelligent last-mile delivery backend built with Java, Spring Boot, PostgreSQL, and React.
 
 Atlas simulates how modern delivery platforms assign couriers, predict delivery times, track SLA compliance, and manage delivery operations across geographic zones.

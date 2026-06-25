@@ -1,0 +1,13 @@
+<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  <rect width="160" height="160" rx="36" fill="#0a0a0a"/>
+  <!-- Left leg -->
+  <polygon points="61,14 77,14 45,148 13,148" fill="white"/>
+  <!-- Right leg upper (above diagonal cut) -->
+  <polygon points="69,14 97,14 100,26 75,39" fill="white"/>
+  <!-- Right leg lower (below diagonal cut) -->
+  <polygon points="80,58 106,45 135,148 103,148" fill="white"/>
+  <!-- Line extending from cut to dot -->
+  <line x1="100" y1="26" x2="141" y2="7" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Dot -->
+  <circle cx="141" cy="7" r="6" fill="white"/>
+</svg>
