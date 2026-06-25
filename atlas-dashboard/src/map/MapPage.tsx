@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useMapData } from './useMapData'
 import { useSimulation } from './useSimulation'
+import type { SimState, SimPhase } from './useSimulation'
 import AtlasMap from './AtlasMap'
 import SimulationControls from './SimulationControls'
 import AppHeader from '../components/AppHeader'
@@ -13,19 +14,35 @@ const VEHICLE_EMOJI: Record<string, string> = {
   CAR: '🚗',
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  AVAILABLE: 'Available',
+const COURIER_STATUS_LABEL: Record<string, string> = {
+  AVAILABLE:  'Available',
   DELIVERING: 'Delivering',
-  OFFLINE: 'Offline',
+  OFFLINE:    'Offline',
 }
+
+const SIM_PHASE_LABEL: Record<SimPhase, string> = {
+  to_pickup:   'En route to pickup',
+  at_pickup:   'At pickup',
+  to_delivery: 'En route to delivery',
+  at_delivery: 'At delivery',
+  done:        'Delivered',
+}
+
+function formatEta(seconds: number): string {
+  if (seconds <= 0) return 'Arriving…'
+  if (seconds < 60) return `~${Math.round(seconds)}s`
+  const m = Math.floor(seconds / 60)
+  const s = Math.round(seconds % 60)
+  return `~${m}m ${s}s`
+}
+
+// ─── Order detail panel ────────────────────────────────────────────────────
 
 function OrderPanel({
   order,
   assignment,
   courier,
-  simPhase,
-  simProgress,
-  simPaused,
+  sim,
   apiLoading,
   onStartSim,
   onPauseSim,
@@ -37,9 +54,7 @@ function OrderPanel({
   order: OrderResponse
   assignment: AssignmentSummary | null
   courier: CourierResponse | null
-  simPhase: import('./useSimulation').SimPhase | null
-  simProgress: number
-  simPaused: boolean
+  sim: SimState | null
   apiLoading: boolean
   onStartSim: () => void
   onPauseSim: () => void
@@ -90,7 +105,7 @@ function OrderPanel({
           <p className="text-sm font-medium text-gray-800">
             {VEHICLE_EMOJI[courier.vehicleType]} {courier.name}
           </p>
-          <p className="text-xs text-gray-500">{STATUS_LABEL[courier.status] ?? courier.status}</p>
+          <p className="text-xs text-gray-500">{COURIER_STATUS_LABEL[courier.status] ?? courier.status}</p>
         </div>
       )}
 
@@ -98,9 +113,7 @@ function OrderPanel({
         order={order}
         assignment={assignment}
         courier={courier}
-        simPhase={simPhase}
-        simProgress={simProgress}
-        simPaused={simPaused}
+        sim={sim}
         onStart={onStartSim}
         onPause={onPauseSim}
         onResume={onResumeSim}
@@ -113,15 +126,29 @@ function OrderPanel({
   )
 }
 
+// ─── Courier detail panel ──────────────────────────────────────────────────
+
 function CourierPanel({
   courier,
   assignment,
   order,
+  sim,
+  apiLoading,
+  onPauseSim,
+  onResumeSim,
+  onStopSim,
 }: {
   courier: CourierResponse
   assignment: AssignmentSummary | null
   order: OrderResponse | null
+  sim: SimState | null
+  apiLoading: boolean
+  onPauseSim: () => void
+  onResumeSim: () => void
+  onStopSim: () => void
 }) {
+  const isMoving = sim && (sim.phase === 'to_pickup' || sim.phase === 'to_delivery')
+
   return (
     <div className="p-4 space-y-3">
       <div>
@@ -134,7 +161,7 @@ function CourierPanel({
           courier.status === 'AVAILABLE'  ? 'bg-green-100 text-green-700' :
           courier.status === 'DELIVERING' ? 'bg-blue-100 text-blue-700' :
           'bg-gray-100 text-gray-500'
-        }`}>{STATUS_LABEL[courier.status] ?? courier.status}</span>
+        }`}>{COURIER_STATUS_LABEL[courier.status] ?? courier.status}</span>
       </div>
 
       {courier.zoneName && (
@@ -158,9 +185,66 @@ function CourierPanel({
           </p>
         </div>
       )}
+
+      {/* Live simulation info */}
+      {sim && (
+        <div className="pt-3 border-t border-gray-100 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className={`shrink-0 inline-block h-1.5 w-1.5 rounded-full ${
+                isMoving && !sim.paused ? 'bg-indigo-500 animate-pulse' :
+                sim.paused             ? 'bg-amber-400' :
+                sim.phase === 'done'   ? 'bg-green-500' :
+                                         'bg-amber-500'
+              }`} />
+              <p className="text-xs font-medium text-gray-700 truncate">
+                {sim.paused ? 'Paused' : SIM_PHASE_LABEL[sim.phase]}
+              </p>
+            </div>
+            {isMoving && !sim.paused && (
+              <p className="shrink-0 text-xs text-gray-400 tabular-nums">
+                {formatEta(sim.etaSeconds)}
+              </p>
+            )}
+          </div>
+
+          {isMoving && (
+            <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-indigo-400 rounded-full"
+                style={{ width: `${Math.round(sim.progress * 100)}%`, transition: 'none' }}
+              />
+            </div>
+          )}
+
+          {isMoving && !sim.paused && (
+            <p className="text-xs text-gray-400">{sim.speedKmh.toFixed(0)} km/h</p>
+          )}
+
+          {isMoving && !apiLoading && (
+            sim.paused ? (
+              <button onClick={onResumeSim} className="w-full px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors">
+                Resume
+              </button>
+            ) : (
+              <button onClick={onPauseSim} className="w-full px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
+                Pause
+              </button>
+            )
+          )}
+
+          {sim.phase !== 'done' && (
+            <button onClick={onStopSim} className="w-full px-3 py-1 text-xs text-gray-400 hover:text-gray-600 transition-colors">
+              Stop simulation
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
+
+// ─── Main MapPage ──────────────────────────────────────────────────────────
 
 interface Props {
   onLogout: () => void
@@ -170,7 +254,9 @@ interface Props {
 export default function MapPage({ onLogout, onViewOrders }: Props) {
   const { zones, couriers, orders, assignments, loading, error, reload } = useMapData()
   const {
-    sim,
+    simMap,
+    activeCount,
+    simulatingOrderIds,
     startSimulation,
     confirmPickup,
     confirmDelivery,
@@ -179,9 +265,9 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
     stopSimulation,
   } = useSimulation()
 
-  const [selectedOrderId, setSelectedOrderId]   = useState<string | null>(null)
+  const [selectedOrderId, setSelectedOrderId]     = useState<string | null>(null)
   const [selectedCourierId, setSelectedCourierId] = useState<string | null>(null)
-  const [simApiLoading, setSimApiLoading]         = useState(false)
+  const [simApiLoading, setSimApiLoading]         = useState<Record<string, boolean>>({})
   const [lastUpdated, setLastUpdated]             = useState<Date | null>(null)
 
   function handleSelectOrder(id: string) {
@@ -204,7 +290,7 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
     setLastUpdated(new Date())
   }
 
-  const selectedOrder   = orders.find((o) => o.id === selectedOrderId)   ?? null
+  const selectedOrder   = orders.find((o) => o.id === selectedOrderId)    ?? null
   const selectedCourier = couriers.find((c) => c.id === selectedCourierId) ?? null
 
   const assignmentForOrder = selectedOrder
@@ -225,7 +311,8 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
 
   const hasPanel = selectedOrder !== null || selectedCourier !== null
 
-  // Simulation handlers — only valid for the selected ASSIGNED order.
+  // ── Simulation handlers ─────────────────────────────────────────────────
+
   const handleStartSim = useCallback(() => {
     if (!selectedOrder || !assignmentForOrder || !courierForOrderAssignment) return
     if (courierForOrderAssignment.latitude == null || courierForOrderAssignment.longitude == null) return
@@ -233,6 +320,7 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
       orderId:      selectedOrder.id,
       courierId:    courierForOrderAssignment.id,
       assignmentId: assignmentForOrder.id,
+      vehicleType:  courierForOrderAssignment.vehicleType,
       courierLat:   courierForOrderAssignment.latitude,
       courierLng:   courierForOrderAssignment.longitude,
       pickupLat:    selectedOrder.pickupLatitude,
@@ -242,47 +330,88 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
     })
   }, [selectedOrder, assignmentForOrder, courierForOrderAssignment, startSimulation])
 
-  const handleConfirmPickup = useCallback(async () => {
-    if (!sim) return
-    setSimApiLoading(true)
+  // Start simulations for all ASSIGNED orders not already simulating.
+  const handleSimulateAll = useCallback(() => {
+    for (const order of orders) {
+      if (order.status !== 'ASSIGNED') continue
+      const asgn = assignments.find((a) => a.orderId === order.id && !a.deliveredAt && !a.cancelledAt)
+      if (!asgn) continue
+      const courier = couriers.find((c) => c.id === asgn.courierId)
+      if (!courier || courier.latitude == null || courier.longitude == null) continue
+      if (simMap[courier.id]) continue  // already simulating
+      startSimulation({
+        orderId:      order.id,
+        courierId:    courier.id,
+        assignmentId: asgn.id,
+        vehicleType:  courier.vehicleType,
+        courierLat:   courier.latitude,
+        courierLng:   courier.longitude,
+        pickupLat:    order.pickupLatitude,
+        pickupLng:    order.pickupLongitude,
+        deliveryLat:  order.deliveryLatitude,
+        deliveryLng:  order.deliveryLongitude,
+      })
+    }
+  }, [orders, assignments, couriers, simMap, startSimulation])
+
+  const handleConfirmPickup = useCallback(async (courierId: string) => {
+    const entry = simMap[courierId]
+    if (!entry) return
+    setSimApiLoading((prev) => ({ ...prev, [courierId]: true }))
     try {
-      await client.patch(`/api/v1/assignments/${sim.assignmentId}/pickup`)
-      confirmPickup()
+      await client.patch(`/api/v1/assignments/${entry.assignmentId}/pickup`)
+      confirmPickup(courierId)
       reload()
       setLastUpdated(new Date())
     } catch {
       // leave phase so operator can retry
     } finally {
-      setSimApiLoading(false)
+      setSimApiLoading((prev) => ({ ...prev, [courierId]: false }))
     }
-  }, [sim, confirmPickup, reload])
+  }, [simMap, confirmPickup, reload])
 
-  const handleConfirmDelivery = useCallback(async () => {
-    if (!sim) return
-    setSimApiLoading(true)
+  const handleConfirmDelivery = useCallback(async (courierId: string) => {
+    const entry = simMap[courierId]
+    if (!entry) return
+    setSimApiLoading((prev) => ({ ...prev, [courierId]: true }))
     try {
-      await client.patch(`/api/v1/assignments/${sim.assignmentId}/deliver`)
-      confirmDelivery()
+      await client.patch(`/api/v1/assignments/${entry.assignmentId}/deliver`)
+      confirmDelivery(courierId)
       reload()
       setLastUpdated(new Date())
     } catch {
       // leave phase so operator can retry
     } finally {
-      setSimApiLoading(false)
+      setSimApiLoading((prev) => ({ ...prev, [courierId]: false }))
     }
-  }, [sim, confirmDelivery, reload])
+  }, [simMap, confirmDelivery, reload])
 
-  // Merge simulated courier position into the couriers array for the map renderer.
-  const renderedCouriers = sim
-    ? couriers.map((c) =>
-        c.id === sim.courierId ? { ...c, latitude: sim.lat, longitude: sim.lng } : c
-      )
-    : couriers
+  // ── Derived data for map rendering ──────────────────────────────────────
 
-  // Sim state for the panel — only when the sim is running for the currently selected order.
-  const activeSimPhase    = sim && selectedOrder && sim.orderId === selectedOrder.id ? sim.phase    : null
-  const activeSimProgress = sim && selectedOrder && sim.orderId === selectedOrder.id ? sim.progress : 0
-  const activeSimPaused   = sim && selectedOrder && sim.orderId === selectedOrder.id ? sim.paused   : false
+  // Merge simulated positions into couriers array.
+  const renderedCouriers = couriers.map((c) => {
+    const entry = simMap[c.id]
+    return entry ? { ...c, latitude: entry.lat, longitude: entry.lng } : c
+  })
+
+  // Whether there are any ASSIGNED orders that can still be started.
+  const canSimulateMore = orders.some((o) => {
+    if (o.status !== 'ASSIGNED') return false
+    const asgn = assignments.find((a) => a.orderId === o.id && !a.deliveredAt && !a.cancelledAt)
+    if (!asgn) return false
+    const courier = couriers.find((c) => c.id === asgn.courierId)
+    return courier && courier.latitude != null && courier.longitude != null && !simMap[courier.id]
+  })
+
+  // Sim entry for the currently selected order (via its assigned courier).
+  const simForSelectedOrder = courierForOrderAssignment
+    ? simMap[courierForOrderAssignment.id] ?? null
+    : null
+
+  // Sim entry for the currently selected courier.
+  const simForSelectedCourier = selectedCourier
+    ? simMap[selectedCourier.id] ?? null
+    : null
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
@@ -311,13 +440,38 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
           )}
 
           {!loading && !error && (
-            <AtlasMap
-              data={{ zones, couriers: renderedCouriers, orders, assignments }}
-              selection={{ orderId: selectedOrderId, courierId: selectedCourierId }}
-              onSelectOrder={handleSelectOrder}
-              onSelectCourier={handleSelectCourier}
-              onDeselect={handleDeselect}
-            />
+            <>
+              <AtlasMap
+                data={{ zones, couriers: renderedCouriers, orders, assignments }}
+                selection={{ orderId: selectedOrderId, courierId: selectedCourierId }}
+                extraHighlightedOrderIds={simulatingOrderIds}
+                onSelectOrder={handleSelectOrder}
+                onSelectCourier={handleSelectCourier}
+                onDeselect={handleDeselect}
+              />
+
+              {/* Simulation control overlay — top-left of map canvas */}
+              {(canSimulateMore || activeCount > 0) && (
+                <div className="absolute top-3 left-3 z-[1001] flex flex-col gap-1.5">
+                  {canSimulateMore && (
+                    <button
+                      onClick={handleSimulateAll}
+                      className="px-3 py-1.5 text-xs font-medium bg-white/95 border border-gray-200 rounded-lg shadow-sm text-gray-700 hover:bg-white transition-colors backdrop-blur-sm"
+                    >
+                      ▶ Simulate All Assigned
+                    </button>
+                  )}
+                  {activeCount > 0 && (
+                    <button
+                      onClick={() => stopSimulation()}
+                      className="px-3 py-1.5 text-xs font-medium bg-white/95 border border-gray-200 rounded-lg shadow-sm text-gray-500 hover:text-red-600 hover:bg-white transition-colors backdrop-blur-sm"
+                    >
+                      ✕ Stop All ({activeCount})
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -340,16 +494,14 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
                 order={selectedOrder}
                 assignment={assignmentForOrder}
                 courier={courierForOrderAssignment}
-                simPhase={activeSimPhase}
-                simProgress={activeSimProgress}
-                simPaused={activeSimPaused}
-                apiLoading={simApiLoading}
+                sim={simForSelectedOrder}
+                apiLoading={courierForOrderAssignment ? (simApiLoading[courierForOrderAssignment.id] ?? false) : false}
                 onStartSim={handleStartSim}
-                onPauseSim={pauseSimulation}
-                onResumeSim={resumeSimulation}
-                onConfirmPickup={handleConfirmPickup}
-                onConfirmDelivery={handleConfirmDelivery}
-                onStopSim={stopSimulation}
+                onPauseSim={() => courierForOrderAssignment && pauseSimulation(courierForOrderAssignment.id)}
+                onResumeSim={() => courierForOrderAssignment && resumeSimulation(courierForOrderAssignment.id)}
+                onConfirmPickup={() => courierForOrderAssignment && handleConfirmPickup(courierForOrderAssignment.id)}
+                onConfirmDelivery={() => courierForOrderAssignment && handleConfirmDelivery(courierForOrderAssignment.id)}
+                onStopSim={() => courierForOrderAssignment && stopSimulation(courierForOrderAssignment.id)}
               />
             )}
 
@@ -358,6 +510,11 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
                 courier={selectedCourier}
                 assignment={assignmentForCourier}
                 order={orderForCourierAssignment}
+                sim={simForSelectedCourier}
+                apiLoading={simApiLoading[selectedCourier.id] ?? false}
+                onPauseSim={() => pauseSimulation(selectedCourier.id)}
+                onResumeSim={() => resumeSimulation(selectedCourier.id)}
+                onStopSim={() => stopSimulation(selectedCourier.id)}
               />
             )}
           </div>
@@ -371,7 +528,12 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
           <span><span className="inline-block w-2 h-2 rounded-full bg-green-400 mr-1.5" />Available courier</span>
           <span><span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1.5" />Delivering courier</span>
           <span><span className="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1.5" />Offline courier</span>
-          <span className="ml-auto">{zones.length} zones · {couriers.length} couriers · {orders.length} orders</span>
+          <span className="ml-auto">
+            {activeCount > 0 && (
+              <span className="mr-3 text-indigo-500 font-medium">{activeCount} simulating</span>
+            )}
+            {zones.length} zones · {couriers.length} couriers · {orders.length} orders
+          </span>
         </div>
       )}
     </div>

@@ -1,13 +1,11 @@
-import type { SimPhase } from './useSimulation'
+import type { SimState, SimPhase } from './useSimulation'
 import type { AssignmentSummary, CourierResponse, OrderResponse } from '../api/types'
 
 interface Props {
   order: OrderResponse
   assignment: AssignmentSummary | null
   courier: CourierResponse | null
-  simPhase: SimPhase | null
-  simProgress: number
-  simPaused: boolean
+  sim: SimState | null
   onStart: () => void
   onPause: () => void
   onResume: () => void
@@ -29,13 +27,19 @@ function isMoving(phase: SimPhase) {
   return phase === 'to_pickup' || phase === 'to_delivery'
 }
 
+function formatEta(seconds: number): string {
+  if (seconds <= 0) return 'Arriving…'
+  if (seconds < 60) return `~${Math.round(seconds)}s`
+  const m = Math.floor(seconds / 60)
+  const s = Math.round(seconds % 60)
+  return `~${m}m ${s}s`
+}
+
 export default function SimulationControls({
   order,
   assignment,
   courier,
-  simPhase,
-  simProgress,
-  simPaused,
+  sim,
   onStart,
   onPause,
   onResume,
@@ -46,7 +50,7 @@ export default function SimulationControls({
 }: Props) {
   if (order.status !== 'ASSIGNED' || !assignment || !courier) return null
 
-  if (simPhase === null) {
+  if (!sim) {
     return (
       <div className="pt-3 border-t border-gray-100">
         <button
@@ -59,35 +63,50 @@ export default function SimulationControls({
     )
   }
 
+  const { phase, progress, paused, speedKmh, etaSeconds } = sim
+  const moving = isMoving(phase)
+
   const dotClass =
-    isMoving(simPhase) && !simPaused ? 'bg-indigo-500 animate-pulse' :
-    simPaused                        ? 'bg-amber-400' :
-    simPhase === 'done'              ? 'bg-green-500' :
-                                       'bg-amber-500'
+    moving && !paused  ? 'bg-indigo-500 animate-pulse' :
+    paused             ? 'bg-amber-400' :
+    phase === 'done'   ? 'bg-green-500' :
+                         'bg-amber-500'
 
   return (
     <div className="pt-3 border-t border-gray-100 space-y-2">
-      {/* Phase status */}
-      <div className="flex items-center gap-2">
-        <span className={`shrink-0 inline-block h-1.5 w-1.5 rounded-full ${dotClass}`} />
-        <p className="text-xs font-medium text-gray-700">
-          {simPaused ? 'Paused' : PHASE_LABEL[simPhase]}
-        </p>
+      {/* Phase + ETA */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className={`shrink-0 inline-block h-1.5 w-1.5 rounded-full ${dotClass}`} />
+          <p className="text-xs font-medium text-gray-700 truncate">
+            {paused ? 'Paused' : PHASE_LABEL[phase]}
+          </p>
+        </div>
+        {moving && (
+          <p className="shrink-0 text-xs text-gray-400 tabular-nums">
+            {formatEta(etaSeconds)}
+          </p>
+        )}
       </div>
 
-      {/* Progress bar — only during movement legs */}
-      {isMoving(simPhase) && (
+      {/* Progress bar */}
+      {moving && (
         <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-indigo-400 rounded-full"
-            style={{ width: `${Math.round(simProgress * 100)}%`, transition: 'none' }}
+            style={{ width: `${Math.round(progress * 100)}%`, transition: 'none' }}
           />
         </div>
       )}
 
+      {/* Speed */}
+      {moving && !paused && (
+        <p className="text-xs text-gray-400">{speedKmh.toFixed(0)} km/h</p>
+      )}
+
       {/* Pause / Resume */}
-      {isMoving(simPhase) && (
-        simPaused ? (
+      {moving && (
+        paused ? (
           <button
             onClick={onResume}
             className="w-full px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
@@ -105,7 +124,7 @@ export default function SimulationControls({
       )}
 
       {/* Confirm actions at waypoints */}
-      {simPhase === 'at_pickup' && (
+      {phase === 'at_pickup' && (
         <button
           onClick={onConfirmPickup}
           disabled={apiLoading}
@@ -115,7 +134,7 @@ export default function SimulationControls({
         </button>
       )}
 
-      {simPhase === 'at_delivery' && (
+      {phase === 'at_delivery' && (
         <button
           onClick={onConfirmDelivery}
           disabled={apiLoading}
@@ -125,7 +144,7 @@ export default function SimulationControls({
         </button>
       )}
 
-      {simPhase !== 'done' && (
+      {phase !== 'done' && (
         <button
           onClick={onStop}
           className="w-full px-3 py-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"

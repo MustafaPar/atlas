@@ -12,6 +12,7 @@ interface SelectionState {
 interface Props {
   data: MapData
   selection: SelectionState
+  extraHighlightedOrderIds?: Set<string>
   onSelectOrder: (id: string) => void
   onSelectCourier: (id: string) => void
   onDeselect: () => void
@@ -36,8 +37,11 @@ function deriveHighlightedOrderIds(
   return new Set()
 }
 
-export default function AtlasMap({ data, selection, onSelectOrder, onSelectCourier, onDeselect }: Props) {
-  const highlightedOrderIds = deriveHighlightedOrderIds(selection, data.assignments)
+export default function AtlasMap({ data, selection, extraHighlightedOrderIds, onSelectOrder, onSelectCourier, onDeselect }: Props) {
+  const derived = deriveHighlightedOrderIds(selection, data.assignments)
+  const highlightedOrderIds = extraHighlightedOrderIds && extraHighlightedOrderIds.size > 0
+    ? new Set([...derived, ...extraHighlightedOrderIds])
+    : derived
 
   // Default center: centroid of first zone polygon, or London as fallback
   let center: [number, number] = [51.505, -0.09]
