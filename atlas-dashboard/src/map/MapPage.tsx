@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMapData } from './useMapData'
 import AtlasMap from './AtlasMap'
+import AppHeader from '../components/AppHeader'
 import type { AssignmentSummary, CourierResponse, OrderResponse } from '../api/types'
 
 const VEHICLE_EMOJI: Record<string, string> = {
@@ -132,6 +133,7 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
   const [selectedCourierId, setSelectedCourierId] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   function handleSelectOrder(id: string) {
     setSelectedOrderId(id)
@@ -146,6 +148,11 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
   function handleDeselect() {
     setSelectedOrderId(null)
     setSelectedCourierId(null)
+  }
+
+  function handleReload() {
+    reload()
+    setLastUpdated(new Date())
   }
 
   const selectedOrder = orders.find((o) => o.id === selectedOrderId) ?? null
@@ -171,33 +178,13 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <img src="/logo-mark.svg" alt="Atlas" className="h-8" />
-          <span className="text-sm text-gray-400">Last-Mile Delivery</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onViewOrders}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            Orders
-          </button>
-          <span className="text-sm font-medium text-gray-800">Map</span>
-          <button
-            onClick={reload}
-            className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            Refresh
-          </button>
-          <button
-            onClick={onLogout}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
+      <AppHeader
+        activeView="map"
+        onViewOrders={onViewOrders}
+        onViewMap={() => {}}
+        onLogout={onLogout}
+        lastUpdated={lastUpdated}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 relative" style={{ height: '100%' }}>
@@ -227,7 +214,7 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
         </div>
 
         {hasPanel && (
-          <div className="w-64 bg-white border-l border-gray-200 overflow-y-auto shrink-0">
+          <div className="w-72 bg-white border-l border-gray-200 overflow-y-auto shrink-0">
             <div className="flex items-center justify-between px-4 pt-4 pb-2 border-b border-gray-100">
               <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                 {selectedOrder ? 'Order Detail' : 'Courier Detail'}

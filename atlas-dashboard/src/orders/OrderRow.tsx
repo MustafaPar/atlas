@@ -3,25 +3,46 @@ import type { OrderSummary, AssignmentSummary, AssignmentResponse, ApiResponse }
 import client from '../api/client'
 import AssignmentCard from './AssignmentCard'
 
-const STATUS_STYLE: Record<string, string> = {
-  WAITING:   'bg-gray-100 text-gray-700',
-  ASSIGNED:  'bg-amber-100 text-amber-700',
-  PICKED_UP: 'bg-blue-100 text-blue-700',
-  DELIVERED: 'bg-green-100 text-green-700',
-  CANCELLED: 'bg-red-100 text-red-700',
+const STATUS_CLASS: Record<string, string> = {
+  WAITING:   'text-gray-500',
+  ASSIGNED:  'text-blue-600',
+  PICKED_UP: 'text-indigo-600',
+  DELIVERED: 'text-green-600',
+  CANCELLED: 'text-red-400',
 }
 
-const SLA_STYLE: Record<string, string> = {
-  ON_TRACK: 'bg-green-100 text-green-700',
-  AT_RISK:  'bg-amber-100 text-amber-700',
-  BREACHED: 'bg-red-100 text-red-700',
+const STATUS_LABEL: Record<string, string> = {
+  WAITING:   'Waiting',
+  ASSIGNED:  'Assigned',
+  PICKED_UP: 'Picked up',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
 }
 
-const PRIORITY_STYLE: Record<string, string> = {
+const SLA_CLASS: Record<string, string> = {
+  ON_TRACK: 'text-gray-400',
+  AT_RISK:  'text-amber-600',
+  BREACHED: 'text-red-600 font-semibold',
+}
+
+const SLA_LABEL: Record<string, string> = {
+  ON_TRACK: 'On track',
+  AT_RISK:  'At risk',
+  BREACHED: 'Breached',
+}
+
+const PRIORITY_CLASS: Record<string, string> = {
   LOW:    'text-gray-400',
-  NORMAL: 'text-gray-600',
+  NORMAL: 'text-gray-500',
   HIGH:   'text-orange-600',
   URGENT: 'text-red-600 font-semibold',
+}
+
+const PRIORITY_LABEL: Record<string, string> = {
+  LOW:    'Low',
+  NORMAL: 'Normal',
+  HIGH:   'High',
+  URGENT: 'Urgent',
 }
 
 type ApiError = { response?: { data?: { message?: string } } }
@@ -103,40 +124,37 @@ export default function OrderRow({ order, activeAssignment, onRefresh }: Props) 
   }
 
   const showCard = freshAssignment !== null && order.status === 'ASSIGNED'
+  const isBreached = order.slaStatus === 'BREACHED'
 
   return (
     <Fragment>
-      <tr className="border-b border-gray-100 hover:bg-gray-50 align-top">
-        <td className="px-4 py-3">
-          <span
-            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${STATUS_STYLE[order.status] ?? ''}`}
-          >
-            {order.status.replace('_', ' ')}
+      <tr className={`border-b border-gray-100 hover:bg-gray-50/60 align-top transition-colors ${isBreached ? 'bg-red-50/10' : ''}`}>
+        <td className="px-4 py-3.5">
+          <span className={`text-xs ${STATUS_CLASS[order.status] ?? 'text-gray-500'}`}>
+            {STATUS_LABEL[order.status] ?? order.status}
           </span>
         </td>
-        <td className="px-4 py-3">
+        <td className="px-4 py-3.5">
           {order.slaStatus ? (
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${SLA_STYLE[order.slaStatus] ?? ''}`}
-            >
-              {order.slaStatus.replace('_', ' ')}
+            <span className={`text-xs ${SLA_CLASS[order.slaStatus] ?? 'text-gray-400'}`}>
+              {SLA_LABEL[order.slaStatus] ?? order.slaStatus}
             </span>
           ) : (
-            <span className="text-xs text-gray-400">—</span>
+            <span className="text-xs text-gray-300">—</span>
           )}
         </td>
-        <td className="px-4 py-3 text-xs text-gray-700 whitespace-nowrap">
+        <td className="px-4 py-3.5 text-xs text-gray-600 whitespace-nowrap">
           {order.etaMinutes != null ? `${order.etaMinutes} min` : '—'}
         </td>
-        <td className={`px-4 py-3 text-xs whitespace-nowrap ${PRIORITY_STYLE[order.priority] ?? ''}`}>
-          {order.priority}
+        <td className={`px-4 py-3.5 text-xs whitespace-nowrap ${PRIORITY_CLASS[order.priority] ?? ''}`}>
+          {PRIORITY_LABEL[order.priority] ?? order.priority}
         </td>
-        <td className="px-4 py-3 text-xs text-gray-600 max-w-xs">
+        <td className="px-4 py-3.5 text-xs text-gray-600 max-w-xs">
           <div className="truncate">{order.pickupAddress}</div>
-          <div className="truncate text-gray-400">{order.deliveryAddress}</div>
+          <div className="truncate text-gray-400 mt-0.5">{order.deliveryAddress}</div>
         </td>
-        <td className="px-4 py-3">
-          <div className="flex flex-wrap gap-1">
+        <td className="px-4 py-3.5">
+          <div className="flex flex-col items-start gap-1">
             {order.status === 'WAITING' && (
               <button
                 onClick={handleAssign}
@@ -158,9 +176,9 @@ export default function OrderRow({ order, activeAssignment, onRefresh }: Props) 
                 <button
                   onClick={handleUnassign}
                   disabled={loading}
-                  className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 transition-colors"
+                  className="text-xs text-gray-400 hover:text-gray-600 disabled:opacity-50 transition-colors"
                 >
-                  Unassign
+                  unassign
                 </button>
               </>
             )}
@@ -173,12 +191,12 @@ export default function OrderRow({ order, activeAssignment, onRefresh }: Props) 
                 {loading ? '…' : 'Deliver'}
               </button>
             )}
-            {error && <p className="text-xs text-red-600 w-full mt-1">{error}</p>}
+            {error && <p className="text-xs text-red-600 mt-0.5">{error}</p>}
           </div>
         </td>
       </tr>
       {showCard && (
-        <tr className="border-b border-gray-100 bg-blue-50/30">
+        <tr className="border-b border-gray-100 bg-blue-50/20">
           <td colSpan={6} className="px-4 pb-3 pt-0">
             <AssignmentCard assignment={freshAssignment!} />
           </td>
