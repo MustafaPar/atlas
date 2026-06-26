@@ -134,100 +134,52 @@ Docker
 
 ---
 
-# 🚀 Getting Started
+🚀 Getting Started
+Prerequisites
+• Java 21
+• Maven 3.9+
+• Node.js 20+
+• Docker Desktop
 
-## Prerequisites
-
-- Java 21
-- Maven 3.9+
-- Node.js 20+
-- Docker Desktop
-- PostgreSQL 16 (via Docker)
-
----
-
-## Clone Repository
-
-```bash
+Clone Repository
 git clone https://github.com/MustafaPar/atlas.git
 cd atlas
-```
 
----
-
-## Start PostgreSQL
-
-```bash
+Start PostgreSQL
 docker run --name atlas-postgres \
 -e POSTGRES_DB=atlas \
 -e POSTGRES_USER=atlas \
 -e POSTGRES_PASSWORD=atlas \
 -p 5432:5432 \
 -d postgres:16
-```
 
-Verify that the container is running:
-
-```bash
 docker ps
-```
 
----
-
-## Start Backend
-
-```bash
+Start Backend
 cd atlas-api
-```
 
-Set the JWT secret:
-
-### Windows PowerShell
-
-```powershell
+Windows PowerShell
 $env:JWT_SECRET="atlas-demo-secret-key-at-least-32-characters"
 mvn spring-boot:run
-```
 
-### Linux / macOS
-
-```bash
+Linux / macOS
 export JWT_SECRET="atlas-demo-secret-key-at-least-32-characters"
 mvn spring-boot:run
-```
 
-The API will be available at:
-
-```text
+API:
 http://localhost:8080
-```
 
----
-
-## Start Frontend
-
-Open a new terminal:
-
-```bash
+Start Frontend
 cd atlas-dashboard
 npm install
 npm run dev
-```
 
-The dashboard will be available at:
+Dashboard:
+http://localhost:5173 (default Vite port)
 
-```text
-http://localhost:5173
-```
-
----
-
-## Demo Account
-
-```text
-Email:    demo@atlas.io
+Demo Account
+Email: demo@atlas.io
 Password: demo12345
-```
 
 # 📁 Project Structure
 
