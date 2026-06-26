@@ -26,7 +26,7 @@
 
 ---
 
-# Demo
+## ─ Demo
 
 <p align="center">
   <img src="docs/Atlas.gif" width="100%">
@@ -51,7 +51,7 @@
 
 ## ─ Screenshots
 
-## Login
+### Login
 
 <p align="center">
   <img src="docs/atlas-login.png" width="80%">
@@ -59,7 +59,7 @@
 
 ---
 
-## Operations Dashboard
+### Operations Dashboard
 
 <p align="center">
   <img src="docs/atlas-dashboard.png" width="100%">
@@ -67,7 +67,7 @@
 
 ---
 
-## Interactive Map
+### Interactive Map
 
 <p align="center">
   <img src="docs/atlas-map.png" width="100%">
@@ -75,7 +75,7 @@
 
 ---
 
-## Real-Time Multi-Courier Simulation
+### Real-Time Multi-Courier Simulation
 
 <p align="center">
   <img src="docs/atlas-simulated.png" width="100%">
@@ -102,7 +102,7 @@ Docker
 
 ## ─ Tech Stack
 
-## Backend
+### Backend
 
 - Java 21
 - Spring Boot 3
@@ -113,7 +113,7 @@ Docker
 - PostgreSQL
 - Docker
 
-## Frontend
+### Frontend
 
 - React
 - TypeScript
@@ -125,7 +125,7 @@ Docker
 
 ## ─ Getting Started
 
-## Prerequisites
+### Prerequisites
 
 Before running Atlas locally, make sure you have:
 
@@ -136,7 +136,7 @@ Before running Atlas locally, make sure you have:
 
 ---
 
-## Clone Repository
+### Clone Repository
 
 ```bash
 git clone https://github.com/MustafaPar/atlas.git
@@ -145,7 +145,7 @@ cd atlas
 
 ---
 
-## Start PostgreSQL
+### Start PostgreSQL
 
 ```bash
 docker run --name atlas-postgres \
@@ -164,7 +164,7 @@ docker ps
 
 ---
 
-## Start Backend
+### Start Backend
 
 Open a terminal in the project root:
 
@@ -174,14 +174,14 @@ cd atlas-api
 
 Set the JWT secret and start the API.
 
-### Windows PowerShell
+#### Windows PowerShell
 
 ```powershell
 $env:JWT_SECRET="atlas-demo-secret-key-at-least-32-characters"
 mvn spring-boot:run
 ```
 
-### Linux / macOS
+#### Linux / macOS
 
 ```bash
 export JWT_SECRET="atlas-demo-secret-key-at-least-32-characters"
@@ -196,7 +196,7 @@ http://localhost:8080
 
 ---
 
-## Start Frontend
+### Start Frontend
 
 Open a second terminal in the project root:
 
@@ -216,7 +216,7 @@ http://localhost:5173
 
 ---
 
-## Demo Account
+### Demo Account
 
 ```text
 Email:    demo@atlas.io
@@ -225,7 +225,7 @@ Password: demo12345
 
 ---
 
-## Reset Demo Data
+### Reset Demo Data
 
 After logging in, use the **Reset Demo** button to restore demo orders and couriers to their initial state.
 
