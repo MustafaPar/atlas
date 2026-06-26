@@ -44,7 +44,7 @@ export default function LoginPage({ onLogin }: Props) {
     <div className="min-h-screen bg-black flex items-center justify-center">
       <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <img src="/logo-full.svg" alt="Atlas" className="w-full" />
+          <img src="/assets/atlas-logo-approved.png" alt="Atlas" className="w-full" />
           <p className="mt-3 text-xs tracking-widest uppercase text-gray-500">
             Real-time Delivery Operations
           </p>

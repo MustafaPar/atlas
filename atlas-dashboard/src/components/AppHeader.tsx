@@ -14,7 +14,12 @@ export default function AppHeader({ activeView, onViewOrders, onViewMap, onLogou
   return (
     <header className="bg-white border-b border-gray-200 px-8 flex items-center justify-between shrink-0" style={{ height: 56 }}>
       <div className="flex items-center gap-6">
-        <img src="/logo-mark.svg" alt="Atlas" className="h-7" />
+        <img
+          src="/assets/atlasreal.png"
+          alt="Atlas"
+          className="shrink-0"
+          style={{ height: 52, width: 52, objectFit: 'contain', filter: 'invert(1)' }}
+        />
         <nav className="flex items-center gap-1 h-full">
           <button
             onClick={onViewOrders}
