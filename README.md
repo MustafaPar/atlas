@@ -26,7 +26,7 @@
 
 ---
 
-# 🚚 Demo
+# Demo
 
 <p align="center">
   <img src="docs/Atlas.gif" width="100%">
@@ -34,22 +34,22 @@
 
 ---
 
-# ✨ Features
+## Features
 
-- 🚚 Real-time courier tracking
-- 🗺️ Road-based routing powered by OSRM
-- 📦 Order assignment and delivery workflow
-- 📍 Pickup and delivery confirmations
-- 🎯 Delivery zone management
-- 📊 SLA monitoring and ETA tracking
-- 👥 Multi-courier simulation
-- 🔄 Demo reset functionality
-- 🔐 JWT authentication
-- 🐳 Dockerized PostgreSQL environment
+- Real-time courier tracking
+- Road-based routing powered by OSRM
+- Order assignment and delivery workflow
+- Pickup and delivery confirmations
+- Delivery zone management
+- SLA monitoring and ETA tracking
+- Multi-courier simulation
+- Demo reset functionality
+- JWT authentication
+- Dockerized PostgreSQL environment
 
 ---
 
-# 📸 Screenshots
+## Screenshots
 
 ## Login
 
@@ -83,7 +83,7 @@
 
 ---
 
-# 🏗 Architecture
+## Architecture
 
 ```text
 React + TypeScript Dashboard
@@ -100,7 +100,7 @@ Docker
 
 ---
 
-# 🛠 Tech Stack
+## Tech Stack
 
 ## Backend
 
@@ -123,7 +123,7 @@ Docker
 
 ---
 
-# 🚀 Getting Started
+## Getting Started
 
 ## Prerequisites
 
@@ -231,7 +231,7 @@ After logging in, use the **Reset Demo** button to restore demo orders and couri
 
 ---
 
-# 📁 Project Structure
+## Project Structure
 
 ```text
 atlas-api/
@@ -253,7 +253,7 @@ atlas-dashboard/
 
 ---
 
-# 🔮 Roadmap
+## Roadmap
 
 - [ ] WebSocket live updates
 - [ ] Route optimization engine
@@ -264,7 +264,7 @@ atlas-dashboard/
 
 ---
 
-# 👨‍💻 Author
+## Author
 
 **Mustafa Par**
 
