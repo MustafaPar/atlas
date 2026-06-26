@@ -6,6 +6,7 @@ import AtlasMap from './AtlasMap'
 import SimulationControls from './SimulationControls'
 import AppHeader from '../components/AppHeader'
 import client from '../api/client'
+import { fetchRoute } from './routing'
 import type { AssignmentSummary, CourierResponse, OrderResponse } from '../api/types'
 
 const VEHICLE_EMOJI: Record<string, string> = {
@@ -323,15 +324,21 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
 
   // ── Simulation handlers ─────────────────────────────────────────────────
 
-  const handleStartSim = useCallback(() => {
+  const handleStartSim = useCallback(async () => {
     if (!selectedOrder || !assignmentForOrder || !courierForOrderAssignment) return
+    const courierId = courierForOrderAssignment.id
     const hasGps = courierForOrderAssignment.latitude != null && courierForOrderAssignment.longitude != null
     const fallback = offsetFromPickup(selectedOrder.pickupLatitude, selectedOrder.pickupLongitude)
     const courierLat = hasGps ? courierForOrderAssignment.latitude! : fallback.lat
     const courierLng = hasGps ? courierForOrderAssignment.longitude! : fallback.lng
+    setSimApiLoading((prev) => ({ ...prev, [courierId]: true }))
+    const route = await fetchRoute(
+      { lat: courierLat, lng: courierLng },
+      { lat: selectedOrder.pickupLatitude, lng: selectedOrder.pickupLongitude },
+    )
     startSimulation({
       orderId:      selectedOrder.id,
-      courierId:    courierForOrderAssignment.id,
+      courierId,
       assignmentId: assignmentForOrder.id,
       vehicleType:  courierForOrderAssignment.vehicleType,
       courierLat,
@@ -340,22 +347,48 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
       pickupLng:    selectedOrder.pickupLongitude,
       deliveryLat:  selectedOrder.deliveryLatitude,
       deliveryLng:  selectedOrder.deliveryLongitude,
+      route,
     })
+    setSimApiLoading((prev) => ({ ...prev, [courierId]: false }))
   }, [selectedOrder, assignmentForOrder, courierForOrderAssignment, startSimulation])
 
   // Start simulations for all ASSIGNED orders not already simulating.
-  const handleSimulateAll = useCallback(() => {
+  const handleSimulateAll = useCallback(async () => {
+    // Collect eligible orders first so we can fetch all routes in parallel.
+    const toStart: Array<{
+      order: OrderResponse; asgn: AssignmentSummary; courier: CourierResponse
+      courierLat: number; courierLng: number
+    }> = []
+
     for (const order of orders) {
       if (order.status !== 'ASSIGNED') continue
       const asgn = assignments.find((a) => a.orderId === order.id && !a.deliveredAt && !a.cancelledAt)
       if (!asgn) continue
       const courier = couriers.find((c) => c.id === asgn.courierId)
-      if (!courier) continue
-      if (simMap[courier.id]) continue  // already simulating
+      if (!courier || simMap[courier.id]) continue
       const hasGps = courier.latitude != null && courier.longitude != null
       const fallback = offsetFromPickup(order.pickupLatitude, order.pickupLongitude)
-      const courierLat = hasGps ? courier.latitude! : fallback.lat
-      const courierLng = hasGps ? courier.longitude! : fallback.lng
+      toStart.push({
+        order, asgn, courier,
+        courierLat: hasGps ? courier.latitude! : fallback.lat,
+        courierLng: hasGps ? courier.longitude! : fallback.lng,
+      })
+    }
+
+    if (toStart.length === 0) return
+
+    // Fetch all to-pickup routes in parallel (OSRM or fallback).
+    const routes = await Promise.all(
+      toStart.map(({ courierLat, courierLng, order }) =>
+        fetchRoute(
+          { lat: courierLat, lng: courierLng },
+          { lat: order.pickupLatitude, lng: order.pickupLongitude },
+        )
+      )
+    )
+
+    for (let i = 0; i < toStart.length; i++) {
+      const { order, asgn, courier, courierLat, courierLng } = toStart[i]
       startSimulation({
         orderId:      order.id,
         courierId:    courier.id,
@@ -367,6 +400,7 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
         pickupLng:    order.pickupLongitude,
         deliveryLat:  order.deliveryLatitude,
         deliveryLng:  order.deliveryLongitude,
+        route:        routes[i],
       })
     }
   }, [orders, assignments, couriers, simMap, startSimulation])
@@ -376,8 +410,15 @@ export default function MapPage({ onLogout, onViewOrders }: Props) {
     if (!entry) return
     setSimApiLoading((prev) => ({ ...prev, [courierId]: true }))
     try {
-      await client.patch(`/api/v1/assignments/${entry.assignmentId}/pickup`)
-      confirmPickup(courierId)
+      // Fetch delivery route in parallel with the pickup API call — no extra wait.
+      const [, delivRoute] = await Promise.all([
+        client.patch(`/api/v1/assignments/${entry.assignmentId}/pickup`),
+        fetchRoute(
+          { lat: entry.lat,         lng: entry.lng },
+          { lat: entry.deliveryLat, lng: entry.deliveryLng },
+        ),
+      ])
+      confirmPickup(courierId, delivRoute)
       reload()
       setLastUpdated(new Date())
     } catch {

@@ -1,4 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
+import { generateMockRoute, positionAlongRoute, legSeed } from './mockRouting'
+import type { Route } from './mockRouting'
 
 export type SimPhase =
   | 'to_pickup'
@@ -21,6 +23,7 @@ export interface SimState {
   toLng: number
   deliveryLat: number
   deliveryLng: number
+  route: Route         // generated waypoints for the current movement leg
   progress: number     // 0–1 within the current movement leg
   startTime: number    // epoch ms; shifted forward on resume
   paused: boolean
@@ -40,6 +43,8 @@ export interface StartSimParams {
   pickupLng: number
   deliveryLat: number
   deliveryLng: number
+  /** Pre-fetched road route; falls back to offline mock when omitted. */
+  route?: Route
 }
 
 // Duration of each movement leg.
@@ -91,8 +96,9 @@ export function useSimulation() {
       const t   = Math.min(raw, 1)
       const e   = easeInOut(t)
 
-      s.lat        = s.fromLat + (s.toLat - s.fromLat) * e
-      s.lng        = s.fromLng + (s.toLng - s.fromLng) * e
+      const pos    = positionAlongRoute(s.route, e)
+      s.lat        = pos.lat
+      s.lng        = pos.lng
       s.progress   = t
       s.etaSeconds = Math.max(0, (1 - t) * LEG_DURATION_MS / 1000)
 
@@ -126,6 +132,10 @@ export function useSimulation() {
     // Add ±15% variation so couriers don't all move identically.
     const speedKmh = base * (0.85 + Math.random() * 0.3)
 
+    const fromPt   = { lat: p.courierLat, lng: p.courierLng }
+    const pickupPt = { lat: p.pickupLat,  lng: p.pickupLng }
+    const route    = p.route ?? generateMockRoute(fromPt, pickupPt, legSeed(fromPt, pickupPt))
+
     entriesRef.current[p.courierId] = {
       courierId:    p.courierId,
       orderId:      p.orderId,
@@ -140,6 +150,7 @@ export function useSimulation() {
       toLng:        p.pickupLng,
       deliveryLat:  p.deliveryLat,
       deliveryLng:  p.deliveryLng,
+      route,
       progress:     0,
       startTime:    Date.now(),
       paused:       false,
@@ -151,14 +162,17 @@ export function useSimulation() {
     ensureRaf()
   }, [sync, ensureRaf])
 
-  const confirmPickup = useCallback((courierId: string) => {
+  const confirmPickup = useCallback((courierId: string, delivRoute?: Route) => {
     const s = entriesRef.current[courierId]
     if (!s || s.phase !== 'at_pickup') return
+    const fromPt    = { lat: s.lat,         lng: s.lng }
+    const delivPt   = { lat: s.deliveryLat, lng: s.deliveryLng }
     s.phase      = 'to_delivery'
     s.fromLat    = s.lat
     s.fromLng    = s.lng
     s.toLat      = s.deliveryLat
     s.toLng      = s.deliveryLng
+    s.route      = delivRoute ?? generateMockRoute(fromPt, delivPt, legSeed(fromPt, delivPt))
     s.progress   = 0
     s.startTime  = Date.now()
     s.paused     = false
