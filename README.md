@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/Atlas-banner.png" alt="Atlas Banner" width="100%">
+  <img src="docs/Atlas-banner.png" alt="Atlas Banner" width="100%">
 </p>
 
 <h1 align="center">ATLAS</h1>
@@ -7,7 +7,7 @@
 <p align="center">
   <strong>Intelligent Last-Mile Delivery Platform</strong>
   <br/>
-  Real-time courier tracking, smart routing and delivery operations dashboard.
+  Real-time courier tracking, road-based routing and delivery operations dashboard.
 </p>
 
 <p align="center">
@@ -20,45 +20,32 @@
   <img src="https://img.shields.io/badge/Status-Active-success">
 </p>
 
----
-
-## 🚚 About
-
-Atlas is a full-stack logistics platform built to simulate and manage last-mile delivery operations.
-
-The platform provides:
-
-- 🚚 Real-time courier tracking
-- 🗺️ Road-based routing powered by OSRM
-- 📦 Order assignment and delivery workflow
-- 📍 Pickup & delivery confirmations
-- 🎯 Delivery zone management
-- 📊 SLA and ETA monitoring
-- 👥 Multi-courier simulations
-- 🔄 Demo reset functionality
+<p align="center">
+  A full-stack logistics platform for simulating and managing last-mile delivery operations.
+</p>
 
 ---
 
-# 🎥 Demo
+# 🚚 Demo
 
 <p align="center">
-  <img src="./docs/Atlas.gif" width="100%">
+  <img src="docs/Atlas.gif" width="100%">
 </p>
 
 ---
 
 # ✨ Features
 
-- Real-time courier tracking
-- Road-based routing (OSRM)
-- Delivery zone management
-- Live courier simulation
-- Multi-courier support
-- SLA monitoring
-- ETA tracking
-- JWT authentication
-- Dockerized PostgreSQL environment
-- Demo mode with instant reset
+- 🚚 Real-time courier tracking
+- 🗺️ Road-based routing powered by OSRM
+- 📦 Order assignment and delivery workflow
+- 📍 Pickup and delivery confirmations
+- 🎯 Delivery zone management
+- 📊 SLA monitoring and ETA tracking
+- 👥 Multi-courier simulation
+- 🔄 Demo reset functionality
+- 🔐 JWT authentication
+- 🐳 Dockerized PostgreSQL environment
 
 ---
 
@@ -67,7 +54,7 @@ The platform provides:
 ## Login
 
 <p align="center">
-  <img src="./docs/atlas-login.png" width="80%">
+  <img src="docs/atlas-login.png" width="80%">
 </p>
 
 ---
@@ -75,23 +62,23 @@ The platform provides:
 ## Operations Dashboard
 
 <p align="center">
-  <img src="./docs/atlas-dashboard.png" width="100%">
+  <img src="docs/atlas-dashboard.png" width="100%">
 </p>
 
 ---
 
-## Live Map
+## Interactive Map
 
 <p align="center">
-  <img src="./docs/atlas-map.png" width="100%">
+  <img src="docs/atlas-map.png" width="100%">
 </p>
 
 ---
 
-## Courier Simulation
+## Real-Time Multi-Courier Simulation
 
 <p align="center">
-  <img src="./docs/atlas-simulated.png" width="100%">
+  <img src="docs/atlas-simulated.png" width="100%">
 </p>
 
 ---
@@ -115,7 +102,8 @@ Docker
 
 # 🛠 Tech Stack
 
-### Backend
+## Backend
+
 - Java 21
 - Spring Boot 3
 - Spring Security
@@ -125,7 +113,8 @@ Docker
 - PostgreSQL
 - Docker
 
-### Frontend
+## Frontend
+
 - React
 - TypeScript
 - Vite
@@ -134,52 +123,113 @@ Docker
 
 ---
 
-🚀 Getting Started
-Prerequisites
-• Java 21
-• Maven 3.9+
-• Node.js 20+
-• Docker Desktop
+# 🚀 Getting Started
 
-Clone Repository
+## Prerequisites
+
+Before running Atlas locally, make sure you have:
+
+- Java 21
+- Maven 3.9+
+- Node.js 20+
+- Docker Desktop
+
+---
+
+## Clone Repository
+
+```bash
 git clone https://github.com/MustafaPar/atlas.git
 cd atlas
+```
 
-Start PostgreSQL
+---
+
+## Start PostgreSQL
+
+```bash
 docker run --name atlas-postgres \
 -e POSTGRES_DB=atlas \
 -e POSTGRES_USER=atlas \
 -e POSTGRES_PASSWORD=atlas \
 -p 5432:5432 \
 -d postgres:16
+```
 
+Verify that PostgreSQL is running:
+
+```bash
 docker ps
+```
 
-Start Backend
+---
+
+## Start Backend
+
+Open a terminal in the project root:
+
+```bash
 cd atlas-api
+```
 
-Windows PowerShell
+Set the JWT secret and start the API.
+
+### Windows PowerShell
+
+```powershell
 $env:JWT_SECRET="atlas-demo-secret-key-at-least-32-characters"
 mvn spring-boot:run
+```
 
-Linux / macOS
+### Linux / macOS
+
+```bash
 export JWT_SECRET="atlas-demo-secret-key-at-least-32-characters"
 mvn spring-boot:run
+```
 
-API:
+The API will be available at:
+
+```text
 http://localhost:8080
+```
 
-Start Frontend
+---
+
+## Start Frontend
+
+Open a second terminal in the project root:
+
+```bash
 cd atlas-dashboard
 npm install
 npm run dev
+```
 
-Dashboard:
-http://localhost:5173 (default Vite port)
+The dashboard will be available at:
 
-Demo Account
-Email: demo@atlas.io
+```text
+http://localhost:5173
+```
+
+> Vite may use another port if 5173 is already occupied. Check the terminal output for the exact local URL.
+
+---
+
+## Demo Account
+
+```text
+Email:    demo@atlas.io
 Password: demo12345
+```
+
+---
+
+## Reset Demo Data
+
+After logging in, use the **Reset Demo** button to restore demo orders and couriers to their initial state.
+
+---
 
 # 📁 Project Structure
 
@@ -207,7 +257,7 @@ atlas-dashboard/
 
 - [ ] WebSocket live updates
 - [ ] Route optimization engine
-- [ ] Notifications system
+- [ ] Notification system
 - [ ] Analytics dashboard
 - [ ] Mobile courier application
 - [ ] Kubernetes deployment
