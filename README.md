@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/banner.png" alt="Atlas Banner" width="100%">
+  <img src="./docs/Atlas-banner.png" alt="Atlas Banner" width="100%">
 </p>
 
 <h1 align="center">ATLAS</h1>
@@ -28,37 +28,37 @@ Atlas is a full-stack logistics platform built to simulate and manage last-mile 
 
 The platform provides:
 
-- Real-time courier tracking
-- Road-based routing powered by OSRM
-- Delivery zone management
-- Live delivery simulations
-- SLA and ETA monitoring
-- Multi-courier operations dashboard
-- Demo environment with instant reset
+- 🚚 Real-time courier tracking
+- 🗺️ Road-based routing powered by OSRM
+- 📦 Order assignment and delivery workflow
+- 📍 Pickup & delivery confirmations
+- 🎯 Delivery zone management
+- 📊 SLA and ETA monitoring
+- 👥 Multi-courier simulations
+- 🔄 Demo reset functionality
 
 ---
 
 # 🎥 Demo
 
 <p align="center">
-  <img src="./docs/atlas-demo.gif" width="100%">
+  <img src="./docs/Atlas.gif" width="100%">
 </p>
 
 ---
 
 # ✨ Features
 
-- 🚚 Real-time courier tracking
-- 🗺️ Road-based routing (OSRM)
-- 📦 Order assignment workflow
-- 📍 Pickup & delivery confirmations
-- 🎯 Delivery zone management
-- 📊 SLA monitoring
-- ⏱️ ETA calculation
-- 🔄 Demo reset functionality
-- 👥 Multi-courier simulation
-- 🔐 JWT Authentication
-- 🐳 Dockerized environment
+- Real-time courier tracking
+- Road-based routing (OSRM)
+- Delivery zone management
+- Live courier simulation
+- Multi-courier support
+- SLA monitoring
+- ETA tracking
+- JWT authentication
+- Dockerized PostgreSQL environment
+- Demo mode with instant reset
 
 ---
 
@@ -67,7 +67,7 @@ The platform provides:
 ## Login
 
 <p align="center">
-  <img src="./docs/login.png" width="80%">
+  <img src="./docs/atlas-login.png" width="80%">
 </p>
 
 ---
@@ -75,7 +75,7 @@ The platform provides:
 ## Operations Dashboard
 
 <p align="center">
-  <img src="./docs/dashboard.png" width="100%">
+  <img src="./docs/atlas-dashboard.png" width="100%">
 </p>
 
 ---
@@ -83,7 +83,7 @@ The platform provides:
 ## Live Map
 
 <p align="center">
-  <img src="./docs/map.png" width="100%">
+  <img src="./docs/atlas-map.png" width="100%">
 </p>
 
 ---
@@ -91,7 +91,7 @@ The platform provides:
 ## Courier Simulation
 
 <p align="center">
-  <img src="./docs/simulation.png" width="100%">
+  <img src="./docs/atlas-simulated.png" width="100%">
 </p>
 
 ---
@@ -115,8 +115,7 @@ Docker
 
 # 🛠 Tech Stack
 
-## Backend
-
+### Backend
 - Java 21
 - Spring Boot 3
 - Spring Security
@@ -126,8 +125,7 @@ Docker
 - PostgreSQL
 - Docker
 
-## Frontend
-
+### Frontend
 - React
 - TypeScript
 - Vite
@@ -211,8 +209,7 @@ atlas-dashboard/
 
 Computer Engineering Student @ Istinye University
 
-GitHub:
-https://github.com/MustafaPar
+GitHub: https://github.com/MustafaPar
 
 ---
 
