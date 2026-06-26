@@ -1,153 +1,168 @@
-# Atlas
+<p align="center">
+  <img src="./docs/banner.png" alt="Atlas Banner" width="100%">
+</p>
 
-<div align="center">
-  <img src="atlas-dashboard/public/logo-full.svg" alt="Atlas" width="480">
-</div>
+<h1 align="center">ATLAS</h1>
 
-An intelligent last-mile delivery backend built with Java, Spring Boot, PostgreSQL, and React.
+<p align="center">
+  <strong>Intelligent Last-Mile Delivery Platform</strong>
+  <br/>
+  Real-time courier tracking, smart routing and delivery operations dashboard.
+</p>
 
-Atlas simulates how modern delivery platforms assign couriers, predict delivery times, track SLA compliance, and manage delivery operations across geographic zones.
-
----
-
-## Features
-
-### Authentication
-- JWT-based authentication
-- Secure password storage with BCrypt
-- Protected REST API endpoints
-
-### Delivery Zones
-- Polygon-based delivery zones
-- Coordinate-to-zone resolution
-- Zone capacity management
-
-### Courier Management
-- Courier registration and status tracking
-- Vehicle type support (Bike, Motorcycle, Car)
-- Live location updates
-- Zone assignment
-
-### Order Management
-- Order creation and lifecycle tracking
-- Automatic zone resolution
-- Priority-based processing
-- Delivery status workflow
-
-### SLA Tracking
-- Automatic SLA assignment
-- ON_TRACK, AT_RISK, and BREACHED states
-- Deadline monitoring
-
-### ETA Prediction
-- Distance-based ETA calculation
-- Vehicle-aware speed estimation
-- Confidence scoring
-- SLA feasibility analysis
-
-### Assignment Engine
-- Automatic courier selection
-- Multi-factor scoring model
-- ETA, SLA, zone, and distance optimization
-- Assignment explainability
-
-### Demo Dashboard
-- React-based operations dashboard
-- Order monitoring
-- Assignment workflow
-- SLA visibility
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-21-orange">
+  <img src="https://img.shields.io/badge/Spring%20Boot-3.5-green">
+  <img src="https://img.shields.io/badge/PostgreSQL-16-blue">
+  <img src="https://img.shields.io/badge/React-19-61DAFB">
+  <img src="https://img.shields.io/badge/TypeScript-5-blue">
+  <img src="https://img.shields.io/badge/Docker-2496ED">
+  <img src="https://img.shields.io/badge/Status-Active-success">
+</p>
 
 ---
 
-## Technology Stack
+## 🚚 About
 
-**Backend:**
+Atlas is a full-stack logistics platform built to simulate and manage last-mile delivery operations.
+
+The platform provides:
+
+- Real-time courier tracking
+- Road-based routing powered by OSRM
+- Delivery zone management
+- Live delivery simulations
+- SLA and ETA monitoring
+- Multi-courier operations dashboard
+- Demo environment with instant reset
+
+---
+
+# 🎥 Demo
+
+<p align="center">
+  <img src="./docs/atlas-demo.gif" width="100%">
+</p>
+
+---
+
+# ✨ Features
+
+- 🚚 Real-time courier tracking
+- 🗺️ Road-based routing (OSRM)
+- 📦 Order assignment workflow
+- 📍 Pickup & delivery confirmations
+- 🎯 Delivery zone management
+- 📊 SLA monitoring
+- ⏱️ ETA calculation
+- 🔄 Demo reset functionality
+- 👥 Multi-courier simulation
+- 🔐 JWT Authentication
+- 🐳 Dockerized environment
+
+---
+
+# 📸 Screenshots
+
+## Login
+
+<p align="center">
+  <img src="./docs/login.png" width="80%">
+</p>
+
+---
+
+## Operations Dashboard
+
+<p align="center">
+  <img src="./docs/dashboard.png" width="100%">
+</p>
+
+---
+
+## Live Map
+
+<p align="center">
+  <img src="./docs/map.png" width="100%">
+</p>
+
+---
+
+## Courier Simulation
+
+<p align="center">
+  <img src="./docs/simulation.png" width="100%">
+</p>
+
+---
+
+# 🏗 Architecture
+
+```text
+React + TypeScript Dashboard
+            │
+            ▼
+Spring Boot REST API
+            │
+            ▼
+PostgreSQL Database
+            │
+            ▼
+Docker
+```
+
+---
+
+# 🛠 Tech Stack
+
+## Backend
+
 - Java 21
 - Spring Boot 3
 - Spring Security
-- PostgreSQL
+- JWT Authentication
+- JPA / Hibernate
 - Flyway
-- Hibernate / JPA
+- PostgreSQL
+- Docker
 
-**Frontend:**
+## Frontend
+
 - React
 - TypeScript
 - Vite
+- Leaflet
 - Axios
-- Tailwind CSS
 
 ---
 
-## Architecture
+# 🚀 Getting Started
 
-Atlas follows a layered architecture:
-
-```
-Client → REST API → Services → Repositories → PostgreSQL
-```
-
-Core business modules:
-- Auth
-- Zones
-- Couriers
-- Orders
-- SLA
-- ETA
-- Assignments
-
----
-
-## Quick Start
-
-### Start PostgreSQL
+## Clone Repository
 
 ```bash
-docker run --name courierflow-postgres \
-  -e POSTGRES_DB=atlas \
-  -e POSTGRES_USER=atlas \
-  -e POSTGRES_PASSWORD=atlas \
-  -p 5432:5432 \
-  -d postgres:16
+git clone https://github.com/MustafaPar/atlas.git
+cd atlas
 ```
 
-### Start Backend
+## Start PostgreSQL
 
 ```bash
-cd atlas-api
-mvn spring-boot:run
+docker run --name atlas-postgres \
+-e POSTGRES_DB=atlas \
+-e POSTGRES_USER=atlas \
+-e POSTGRES_PASSWORD=atlas \
+-p 5432:5432 \
+-d postgres:16
 ```
 
-The backend requires a `JWT_SECRET` environment variable — a Base64-encoded 32-byte key.
-
-**PowerShell:**
-```powershell
-$bytes = New-Object byte[] 32
-[Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
-$env:JWT_SECRET = [Convert]::ToBase64String($bytes)
-```
-
-**bash:**
-```bash
-export JWT_SECRET=$(openssl rand -base64 32)
-```
-
-See `atlas-api/.env.example` for all supported environment variables.
-
-### Load Demo Data
+## Start Backend
 
 ```bash
-# Open a new terminal from the repo root, then run:
-docker exec -i courierflow-postgres psql -U atlas -d atlas < scripts/demo-seed.sql
+./mvnw spring-boot:run
 ```
 
-Demo account:
-
-| Field | Value |
-|---|---|
-| Email | `demo@atlas.io` |
-| Password | `Atlas2024!` |
-
-### Start Dashboard
+## Start Frontend
 
 ```bash
 cd atlas-dashboard
@@ -155,20 +170,52 @@ npm install
 npm run dev
 ```
 
-Open: `http://localhost:5173`
+---
+
+# 📁 Project Structure
+
+```text
+atlas-api/
+├── auth/
+├── courier/
+├── delivery-zone/
+├── order/
+├── assignment/
+├── simulation/
+└── common/
+
+atlas-dashboard/
+├── auth/
+├── api/
+├── map/
+├── orders/
+└── components/
+```
 
 ---
 
-## Roadmap
+# 🔮 Roadmap
 
-- Interactive map visualization
-- Real-time courier tracking
-- Analytics dashboard
-- WebSocket updates
-- Deployment automation
+- [ ] WebSocket live updates
+- [ ] Route optimization engine
+- [ ] Notifications system
+- [ ] Analytics dashboard
+- [ ] Mobile courier application
+- [ ] Kubernetes deployment
 
 ---
 
-## License
+# 👨‍💻 Author
 
-MIT
+**Mustafa Par**
+
+Computer Engineering Student @ Istinye University
+
+GitHub:
+https://github.com/MustafaPar
+
+---
+
+<p align="center">
+Built with Java, Spring Boot and a passion for logistics.
+</p>
