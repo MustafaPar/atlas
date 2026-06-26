@@ -268,9 +268,8 @@ atlas-dashboard/
 
 **Mustafa Par**
 
-Computer Engineering Student @ Istinye University
-
-GitHub: https://github.com/MustafaPar
+Computer Engineering Student @ Istinye University  
+Interested in backend engineering, logistics systems and scalable applications.
 
 ---
 
